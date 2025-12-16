@@ -1,0 +1,43 @@
+=================
+SPair-71k Dataset
+=================
+
+This is the SPair-71k benchmark dataset [1] for semantic correspondence.
+The images are in .jpeg format in JPEGImages/ directory.
+The annotations are in .json format in PairAnnotation/ directory.
+For more information about the dataset, visit the project website:
+
+  http://cvlab.postech.ac.kr/research/SPair/
+
+If you use the dataset in a publication, please cite the dataset in
+the style described on the project website (see url above).
+
+Directory Information
+=====================
+
+- devkit/
+    SPair-71k development toolkit.
+    See devkit/README for more info.
+- ImageAnnotation/
+    Json annotation files for all 1,800 images.
+- JPEGImages/
+    1,800 images organized in subdirectories based on categories.
+    Each subdirectory contains 100 images.
+- PairAnnotation/
+    Json annotation files for all 70,958 image pairs.
+    (53,340 training pairs, 5,384 validation pairs, 12,234 test pairs)
+- Segmentation/
+    Segmentation annotations in .png format.
+- Layout/
+    large/: train/validation/test splits used for evaluation in [2].
+    small/: small subset of the original pairs for faster training/evaluation
+            (10,652 training pairs, 1,070 validation pairs, 2,438 test pairs)
+
+References
+==========
+
+[1] J. Min, J. Lee, J. Ponce, and M. Cho.
+SPair-71k: A Large-scale Benchmark for Semantic Correspondence. arXiv preprint, 2019.
+
+[2] J. Min, J. Lee, J. Ponce, and M. Cho.
+Hyperpixel Flow: Semantic Correspondence with Multi-layer Neural Features. ICCV, 2019.
