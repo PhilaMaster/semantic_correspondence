@@ -1,0 +1,24 @@
+=================================
+SPair-71k Dataset Development kit
+=================================
+
+This directory contains python scripts that gives intuitive 
+information about SPair-71k Dataset. The scripts are implemented
+using Python 3.7 with pytorch 1.0, matplotlib, PIL, and etc.
+
+Script Information
+==================
+
+- SPairDataset.py
+    Example usage of SPair-71k dataset in pytorch.
+- report_statistics.py
+    Report visual and tabular statistics of images and pairs used in 
+    SPair-71k dataset. The reports are saved inside 
+    ../Visualization/Statistics
+- verify_dataset.py
+    Verify if SPair-71k dataset is intact and trn/val/test 
+    images are disjoint.
+- visualize_image_annotation.py
+    Visualize image annotations in ../Visualization/JPEGImages
+- visualize_pair_annotation.py
+    Visualize pair annotations in ../Visualization/PairImages
