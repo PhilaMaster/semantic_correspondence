@@ -1,0 +1,5 @@
+ImageAnnotation
+JPEGImages
+PairAnnotation
+Segmentation
+devkit/verify_dataset.py
