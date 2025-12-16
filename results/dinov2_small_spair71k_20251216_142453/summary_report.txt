@@ -1,0 +1,125 @@
+============================================================
+DINOV2 SPAIR-71K EVALUATION SUMMARY
+============================================================
+
+OVERALL RESULTS
+------------------------------------------------------------
+PCK@0.05: mean=50.19%, std=30.35%, median=50.00%
+PCK@0.10: mean=66.14%, std=30.14%, median=75.00%
+PCK@0.20: mean=81.79%, std=25.82%, median=93.10%
+
+
+PER-CATEGORY RESULTS
+------------------------------------------------------------
+
+aeroplane:
+  PCK@0.05: mean=59.43%, std=24.55%
+  PCK@0.10: mean=73.49%, std=22.97%
+  PCK@0.20: mean=86.62%, std=17.73%
+
+bicycle:
+  PCK@0.05: mean=45.48%, std=27.70%
+  PCK@0.10: mean=64.22%, std=30.26%
+  PCK@0.20: mean=82.84%, std=24.06%
+
+bird:
+  PCK@0.05: mean=83.29%, std=17.28%
+  PCK@0.10: mean=94.15%, std=11.08%
+  PCK@0.20: mean=98.64%, std=4.81%
+
+boat:
+  PCK@0.05: mean=29.38%, std=28.11%
+  PCK@0.10: mean=45.88%, std=31.79%
+  PCK@0.20: mean=65.50%, std=32.65%
+
+bottle:
+  PCK@0.05: mean=40.58%, std=27.47%
+  PCK@0.10: mean=58.54%, std=28.81%
+  PCK@0.20: mean=78.65%, std=24.00%
+
+bus:
+  PCK@0.05: mean=35.55%, std=28.31%
+  PCK@0.10: mean=45.71%, std=32.19%
+  PCK@0.20: mean=59.46%, std=35.48%
+
+car:
+  PCK@0.05: mean=33.93%, std=30.30%
+  PCK@0.10: mean=46.49%, std=32.33%
+  PCK@0.20: mean=62.62%, std=32.45%
+
+cat:
+  PCK@0.05: mean=70.60%, std=17.13%
+  PCK@0.10: mean=80.38%, std=13.28%
+  PCK@0.20: mean=93.00%, std=8.51%
+
+chair:
+  PCK@0.05: mean=34.97%, std=26.24%
+  PCK@0.10: mean=51.92%, std=29.34%
+  PCK@0.20: mean=77.78%, std=27.69%
+
+cow:
+  PCK@0.05: mean=67.32%, std=23.98%
+  PCK@0.10: mean=81.66%, std=18.47%
+  PCK@0.20: mean=94.19%, std=10.88%
+
+dog:
+  PCK@0.05: mean=61.21%, std=21.16%
+  PCK@0.10: mean=76.96%, std=19.11%
+  PCK@0.20: mean=92.19%, std=11.70%
+
+horse:
+  PCK@0.05: mean=63.42%, std=26.20%
+  PCK@0.10: mean=80.00%, std=23.65%
+  PCK@0.20: mean=90.58%, std=16.93%
+
+motorbike:
+  PCK@0.05: mean=45.60%, std=29.25%
+  PCK@0.10: mean=62.40%, std=30.38%
+  PCK@0.20: mean=80.12%, std=25.02%
+
+person:
+  PCK@0.05: mean=62.63%, std=29.32%
+  PCK@0.10: mean=78.10%, std=25.88%
+  PCK@0.20: mean=89.68%, std=19.29%
+
+pottedplant:
+  PCK@0.05: mean=39.60%, std=31.53%
+  PCK@0.10: mean=60.46%, std=33.74%
+  PCK@0.20: mean=75.43%, std=31.44%
+
+sheep:
+  PCK@0.05: mean=55.50%, std=34.90%
+  PCK@0.10: mean=70.70%, std=32.75%
+  PCK@0.20: mean=86.36%, std=24.48%
+
+train:
+  PCK@0.05: mean=49.01%, std=23.91%
+  PCK@0.10: mean=73.16%, std=22.74%
+  PCK@0.20: mean=91.11%, std=14.67%
+
+tvmonitor:
+  PCK@0.05: mean=33.88%, std=20.47%
+  PCK@0.10: mean=50.15%, std=24.82%
+  PCK@0.20: mean=69.32%, std=25.15%
+
+
+KEYPOINT CONSISTENCY ANALYSIS
+------------------------------------------------------------
+Categories with most inconsistent keypoint difficulty:
+ category  mean_accuracy  std_accuracy  min_accuracy  max_accuracy     range  num_keypoints
+      cat      75.052445     20.155715     43.939394    100.000000 56.060606             15
+aeroplane      74.442807     19.249670     31.318681     97.222222 65.903541             25
+      dog      77.452878     17.229705     51.578947     99.632353 48.053406             16
+    sheep      70.107371     16.344583     35.000000     94.545455 59.545455             21
+   person      75.092150     16.006586     52.380952     97.142857 44.761905             20
+
+
+THRESHOLD SENSITIVITY
+------------------------------------------------------------
+Categories most sensitive to threshold changes:
+category  pck@0.05  pck@0.10  pck@0.20  sensitivity
+    boat 29.377685 45.880364 65.498971    36.121286
+ bicycle 45.475641 64.222206 82.837746    37.362105
+  bottle 40.583698 58.539226 78.645503    38.061804
+   train 49.008732 73.164568 91.108928    42.100196
+   chair 34.968069 51.915802 77.781664    42.813596
