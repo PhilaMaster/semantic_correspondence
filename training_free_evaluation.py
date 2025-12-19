@@ -3,11 +3,12 @@ from collections import defaultdict
 
 import numpy as np
 import torch
+import time
 
 from SPair71k.devkit.SPairDataset import SPairDataset
 from dinov2 import extract_dense_features, pixel_to_patch_coord, patch_to_pixel_coord
 from matching_strategies import find_best_match_argmax
-from pck import compute_pck
+from pck import compute_pck, compute_pck_spair71k
 from models.dinov2.dinov2.models.vision_transformer import vit_base, vit_small
 import torch.nn.functional as F
 import os
@@ -50,6 +51,7 @@ dataset_size = 'large'
 pck_alpha = 0.1 #mock, it's not used in evaluation
 
 test_dataset = SPairDataset(pair_ann_path, layout_path, image_path, dataset_size, pck_alpha, datatype='test')
+inference_start_time = time.time()
 
 for idx, sample in enumerate(test_dataset):  # type: ignore
     #extract tensors and move to device
@@ -76,6 +78,8 @@ for idx, sample in enumerate(test_dataset):  # type: ignore
     src_kps = sample['src_kps'].numpy()  # [N, 2]
     trg_kps = sample['trg_kps'].numpy()  # [N, 2]
     kps_ids = sample['kps_ids']          # [N]
+
+    trg_bbox = sample['trg_bbox']
 
     pred_matches = []
 
@@ -109,10 +113,10 @@ for idx, sample in enumerate(test_dataset):  # type: ignore
     category = sample['category']
 
     for threshold in thresholds:
-        pck, correct_mask, distances = compute_pck(
+        pck, correct_mask, distances = compute_pck_spair71k(
             pred_matches,
             trg_kps.tolist(),
-            tgt_original_size,  # (W, H)
+            trg_bbox,
             threshold
         )
         image_pcks[threshold] = pck
@@ -151,12 +155,15 @@ for idx, sample in enumerate(test_dataset):  # type: ignore
     #debug early stopping
     # if idx == 100:
     #     break
+inference_end_time = time.time()
+total_inference_time_sec = inference_end_time - inference_start_time
+print(f"Total inference time: {total_inference_time_sec:.2f} seconds")
 
 print("\n" + "=" * 60)
 print("OVERALL RESULTS")
 print("=" * 60)
 
-overall_stats = {}
+overall_stats = {"inference_time_sec":total_inference_time_sec}
 
 for threshold in thresholds:
     all_pcks = np.array([img['pck_scores'][threshold] for img in per_image_metrics])
