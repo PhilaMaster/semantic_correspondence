@@ -9,7 +9,7 @@ from SPair71k.devkit.SPairDataset import SPairDataset
 from helper_functions import extract_dense_features, pixel_to_patch_coord, patch_to_pixel_coord
 from matching_strategies import find_best_match_argmax
 from pck import compute_pck, compute_pck_spair71k
-from models.dinov2.dinov2.models.vision_transformer import vit_base, vit_small
+from models.dinov2.dinov2.models.vision_transformer import vit_base, vit_small, vit_large
 import torch.nn.functional as F
 import os
 from datetime import datetime
@@ -17,13 +17,13 @@ import pandas as pd
 
 #results folder with timestamp
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-results_dir = f'results/dinov2_small_spair71k_{timestamp}'
+results_dir = f'results/dinov2_base_spair71k_{timestamp}'
 os.makedirs(results_dir, exist_ok=True)
 print(f"Results will be saved to: {results_dir}")
 
 
 #patch size that matches the checkpoint (14 for vitb14)
-model = vit_small(
+model = vit_base(
     img_size=(518, 518),        # base / nominal size
     patch_size=14,             # patch size that matches the checkpoint
     num_register_tokens=0,     # <- no registers
@@ -33,7 +33,7 @@ model = vit_small(
 
 device = "cuda" if torch.cuda.is_available() else "cpu" #use GPU if available
 print("Using device:", device)
-ckpt = torch.load("models/dinov2/dinov2_vits14_pretrain.pth", map_location=device)
+ckpt = torch.load("models/dinov2/dinov2_vitb14_pretrain.pth", map_location=device)
 model.load_state_dict(ckpt, strict=True)
 model.to(device)
 model.eval()
@@ -62,7 +62,7 @@ for idx, sample in enumerate(test_dataset):  # type: ignore
     src_tensor = F.interpolate(src_tensor, size=(518, 518), mode='bilinear', align_corners=False)
     tgt_tensor = F.interpolate(tgt_tensor, size=(518, 518), mode='bilinear', align_corners=False)
 
-    #save original sizes
+    #save original sizes ([C, H, W] -> (W, H))
     src_original_size = (sample['src_imsize'][2], sample['src_imsize'][1])
     tgt_original_size = (sample['trg_imsize'][2], sample['trg_imsize'][1])
 
