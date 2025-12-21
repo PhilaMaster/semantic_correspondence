@@ -1,8 +1,11 @@
 import torch
 
 
-def extract_dense_features(model, img_tensor):
-    with torch.no_grad():
+def extract_dense_features(model, img_tensor, training=False):
+    """Extract dense features from DINOv2 model given an input image tensor."""
+    context = torch.no_grad() if not training else torch.enable_grad()
+
+    with context:
         #get tokens
         features_dict = model.forward_features(img_tensor)
         patch_tokens = features_dict['x_norm_patchtokens']  # [B, N_patches, D]
