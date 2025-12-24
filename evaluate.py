@@ -1,13 +1,16 @@
+import json
 import time
 
+import numpy as np
+import pandas as pd
 import torch
 
 from dinov2 import extract_dense_features, pixel_to_patch_coord, patch_to_pixel_coord
-from matching_strategies import find_best_match_argmax
+from matching_strategies import find_best_match_argmax, find_best_match_window_softargmax
 from pck import compute_pck_spair71k
 import torch.nn.functional as F
 
-def evaluate(model, dataset, device, thresholds=[0.05, 0.1, 0.2]):
+def evaluate(model, dataset, device, thresholds=[0.05, 0.1, 0.2], use_windowed_softargmax=False):
     inference_start_time = time.time()
     per_image_metrics = []
     all_keypoint_metrics = []
@@ -61,7 +64,10 @@ def evaluate(model, dataset, device, thresholds=[0.05, 0.1, 0.2]):
                 )  # [H*W]
 
                 # find best matching patch in target
-                match_patch_x, match_patch_y = find_best_match_argmax(similarities, W)
+                if use_windowed_softargmax:
+                    match_patch_x, match_patch_y = find_best_match_window_softargmax(similarities, W, H, K=5, temperature=1.0)
+                else:
+                    match_patch_x, match_patch_y = find_best_match_argmax(similarities, W)
                 match_x, match_y = patch_to_pixel_coord(
                     match_patch_x, match_patch_y, tgt_original_size
                 )
