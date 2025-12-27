@@ -10,6 +10,7 @@ from helper_functions import extract_dense_features, pixel_to_patch_coord, patch
 from matching_strategies import find_best_match_argmax
 from pck import compute_pck_spair71k
 from models.dinov3.dinov3.models.vision_transformer import vit_large
+from models.dinov3.dinov3.models.vision_transformer import vit_large
 import torch.nn.functional as F
 import os
 from datetime import datetime
@@ -36,6 +37,7 @@ model = vit_large (
 
 device = "cuda" if torch.cuda.is_available() else "cpu" #use GPU if available
 print("Using device:", device)
+ckpt = torch.load("models/dinov3/weights/dinov3_vitl16_pretrain.pth", map_location=device)
 ckpt = torch.load("models/dinov3/weights/dinov3_vitl16_pretrain.pth", map_location=device)
 model.load_state_dict(ckpt, strict=True)
 model.to(device)
