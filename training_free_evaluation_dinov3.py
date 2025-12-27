@@ -9,23 +9,24 @@ from SPair71k.devkit.SPairDataset import SPairDataset
 from helper_functions import extract_dense_features, pixel_to_patch_coord, patch_to_pixel_coord
 from matching_strategies import find_best_match_argmax
 from pck import compute_pck_spair71k
-from models.dinov3.dinov3.models.vision_transformer import vit_base, vit_small
+from models.dinov3.dinov3.models.vision_transformer import vit_large
 import torch.nn.functional as F
 import os
 from datetime import datetime
 import pandas as pd
 
+patch_size = 16
+img_size = 512
+
 #results folder with timestamp
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-results_dir = f'results/dinov3/dinov3_small_spair71k_{timestamp}'
+results_dir = f'results/dinov3/large/dinov3_large_spair71k_{timestamp}_{img_size}'
 os.makedirs(results_dir, exist_ok=True)
 print(f"Results will be saved to: {results_dir}")
 
-patch_size = 16
-img_size = 592
 
 
-model = vit_small (
+model = vit_large (
     img_size= (img_size, img_size),        # base / nominal size
     patch_size=patch_size,             # patch size that matches the checkpoint
     n_storage_tokens=4,
@@ -35,7 +36,7 @@ model = vit_small (
 
 device = "cuda" if torch.cuda.is_available() else "cpu" #use GPU if available
 print("Using device:", device)
-ckpt = torch.load("models/dinov3/weights/dinov3_vits16_pretrain.pth", map_location=device)
+ckpt = torch.load("models/dinov3/weights/dinov3_vitl16_pretrain.pth", map_location=device)
 model.load_state_dict(ckpt, strict=True)
 model.to(device)
 model.eval()
@@ -60,7 +61,7 @@ for idx, sample in enumerate(test_dataset):  # type: ignore
     src_tensor = sample['src_img'].unsqueeze(0).to(device)  # [1, 3, H, W]
     tgt_tensor = sample['trg_img'].unsqueeze(0).to(device)  # [1, 3, H, W]
 
-    #resize to 528x528
+    #resize to img_size x img_size
     src_tensor = F.interpolate(src_tensor, size=(img_size, img_size), mode='bilinear', align_corners=False)
     tgt_tensor = F.interpolate(tgt_tensor, size=(img_size, img_size), mode='bilinear', align_corners=False)
 
