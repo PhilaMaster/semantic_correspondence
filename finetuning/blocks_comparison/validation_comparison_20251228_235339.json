@@ -1,0 +1,30 @@
+{
+  "1_blocks_": {
+    "pck@0.05": 45.448034517046764,
+    "pck@0.10": 57.593203730282426,
+    "pck@0.20": 68.63414433226977,
+    "inference_time": 2823.2889952659607,
+    "results_dir": "./blocks_comparison/validation_1_blocks__20251228_213310"
+  },
+  "2_blocks_": {
+    "pck@0.05": 47.58269611033678,
+    "pck@0.10": 60.01446762483937,
+    "pck@0.20": 70.88628343033379,
+    "inference_time": 2798.855044603348,
+    "results_dir": "./blocks_comparison/validation_2_blocks__20251228_222017"
+  },
+  "3_blocks_": {
+    "pck@0.05": 43.64602725458649,
+    "pck@0.10": 56.8276184438387,
+    "pck@0.20": 68.53873707729976,
+    "inference_time": 2796.3866050243378,
+    "results_dir": "./blocks_comparison/validation_3_blocks__20251228_230659"
+  },
+  "4_blocks_": {
+    "pck@0.05": 36.896581682614226,
+    "pck@0.10": 49.52047810452012,
+    "pck@0.20": 62.29470840453416,
+    "inference_time": 2795.8063864707947,
+    "results_dir": "./blocks_comparison/validation_4_blocks__20251228_235339"
+  }
+}
