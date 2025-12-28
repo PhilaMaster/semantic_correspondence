@@ -87,16 +87,18 @@ def evaluate_with_params(model, dataset, device, K, temperature, thresholds=[0.0
                 'num_keypoints': src_kps.shape[0],
                 'pck_scores': image_pcks,
             })
-            if idx%100==0:
+            if idx==100 or idx%1000==0:
                 print(f"  Processed {idx+1}/{len(dataset)} images", flush=True)
+            # if idx==10:
+            #     break  # debug test on 50 images only
 
     return per_image_metrics
 
-def run_grid_search(model, val_dataset, device, results_dir='grid_search_results'):
+def run_grid_search(model, val_dataset, device, results_dir):
     """Run grid search over K and temperature parameters."""
 
     #hyperparameter ranges
-    K_values = [3, 5, 7]
+    K_values = [3, 5, 7, 9]
     temperature_values = [0.5, 1.0, 2.0]
     thresholds = [0.05, 0.1, 0.2]
 
@@ -208,6 +210,11 @@ if __name__ == "__main__":
         block_chunks=0,
         init_values=1.0,  # LayerScale initialization
     )
+    ckpt = torch.load("models/dinov2/dinov2_vitb14_finetuned_only_model_10temp.pth", map_location=device)
+    model.load_state_dict(ckpt, strict=True)
+    model.to(device)
+    model.eval()
+
     base = 'Spair71k'
     pair_ann_path = f'{base}/PairAnnotation'
     layout_path = f'{base}/Layout'
@@ -216,4 +223,4 @@ if __name__ == "__main__":
     pck_alpha = 0.1  # mock, it's not used in evaluation
     val_dataset = SPairDataset(pair_ann_path, layout_path, image_path, dataset_size, pck_alpha, datatype='val')
 
-    df_results, best_params = run_grid_search(model, val_dataset, device)
+    df_results, best_params = run_grid_search(model, val_dataset, device, 'grid_search_results/dinov2_base')

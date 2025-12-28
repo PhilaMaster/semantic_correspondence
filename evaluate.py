@@ -10,7 +10,7 @@ from matching_strategies import find_best_match_argmax, find_best_match_window_s
 from pck import compute_pck_spair71k
 import torch.nn.functional as F
 
-def evaluate(model, dataset, device, thresholds=[0.05, 0.1, 0.2], use_windowed_softargmax=False):
+def evaluate(model, dataset, device, thresholds=[0.05, 0.1, 0.2], use_windowed_softargmax=False, early_stop=False):
     inference_start_time = time.time()
     per_image_metrics = []
     all_keypoint_metrics = []
@@ -119,8 +119,8 @@ def evaluate(model, dataset, device, thresholds=[0.05, 0.1, 0.2], use_windowed_s
                 print(f"Processed {idx + 1} pairs...")
 
             # debug early stopping
-            # if idx == 100:
-            #     break
+            if early_stop and idx == 50:
+                break
     return per_image_metrics, all_keypoint_metrics, time.time() - inference_start_time
 
 def save_results(per_image_metrics, all_keypoint_metrics, results_dir, total_inference_time_sec, thresholds):
