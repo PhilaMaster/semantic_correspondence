@@ -3,3 +3,7 @@ JPEGImages
 PairAnnotation
 Segmentation
 devkit/verify_dataset.py
+
+**/__pycache__/
+*.py[cod]
+*$py.class
