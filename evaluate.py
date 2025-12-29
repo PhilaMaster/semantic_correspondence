@@ -10,7 +10,7 @@ from matching_strategies import find_best_match_argmax, find_best_match_window_s
 from pck import compute_pck_spair71k
 import torch.nn.functional as F
 
-def evaluate(model, dataset, device, thresholds=[0.05, 0.1, 0.2], use_windowed_softargmax=False, early_stop=False):
+def evaluate(model, dataset, device, thresholds=[0.05, 0.1, 0.2], use_windowed_softargmax=False, early_stop=False,K=5, temperature=0.1):
     inference_start_time = time.time()
     per_image_metrics = []
     all_keypoint_metrics = []
@@ -65,7 +65,7 @@ def evaluate(model, dataset, device, thresholds=[0.05, 0.1, 0.2], use_windowed_s
 
                 # find best matching patch in target
                 if use_windowed_softargmax:
-                    match_patch_x, match_patch_y = find_best_match_window_softargmax(similarities, W, H, K=5, temperature=1.0)
+                    match_patch_x, match_patch_y = find_best_match_window_softargmax(similarities, W, H, K, temperature)
                 else:
                     match_patch_x, match_patch_y = find_best_match_argmax(similarities, W)
                 match_x, match_y = patch_to_pixel_coord(
