@@ -1,0 +1,16 @@
+{
+  "dinov2_10temp": {
+    "pck@0.05": 47.58269611033678,
+    "pck@0.10": 60.01446762483937,
+    "pck@0.20": 70.88628343033379,
+    "inference_time": 2819.325503349304,
+    "results_dir": "results/validation_dinov2_10temp_20251226_222641"
+  },
+  "dinov2_1temp": {
+    "pck@0.05": 13.58756359174767,
+    "pck@0.10": 22.61112414400134,
+    "pck@0.20": 36.59762056542348,
+    "inference_time": 2797.614180326462,
+    "results_dir": "results/validation_dinov2_1temp_20251226_231344"
+  }
+}
