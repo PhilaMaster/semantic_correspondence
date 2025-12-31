@@ -7,7 +7,7 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 from SPair71k.devkit.SPairDataset import SPairDataset
-from dinov2 import extract_dense_features, pixel_to_patch_coord
+from helper_functions import extract_dense_features, pixel_to_patch_coord
 from models.dinov2.dinov2.models.vision_transformer import vit_base
 
 

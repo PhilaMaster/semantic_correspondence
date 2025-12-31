@@ -9,7 +9,7 @@ from datetime import datetime
 import torch.nn.functional as F
 
 from SPair71k.devkit.SPairDataset import SPairDataset
-from dinov2 import extract_dense_features, pixel_to_patch_coord, patch_to_pixel_coord
+from helper_functions import extract_dense_features, pixel_to_patch_coord, patch_to_pixel_coord
 from finetuning.simple_eval import simple_evaluate
 from matching_strategies import find_best_match_argmax
 from pck import compute_pck_spair71k

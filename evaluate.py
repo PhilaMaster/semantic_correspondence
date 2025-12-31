@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import torch
 
-from dinov2 import extract_dense_features, pixel_to_patch_coord, patch_to_pixel_coord
+from helper_functions import extract_dense_features, pixel_to_patch_coord, patch_to_pixel_coord
 from matching_strategies import find_best_match_argmax, find_best_match_window_softargmax
 from pck import compute_pck_spair71k
 import torch.nn.functional as F

@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from dinov2 import extract_dense_features, pixel_to_patch_coord, patch_to_pixel_coord
+from helper_functions import extract_dense_features, pixel_to_patch_coord, patch_to_pixel_coord
 from matching_strategies import find_best_match_argmax
 from pck import compute_pck_spair71k
 
