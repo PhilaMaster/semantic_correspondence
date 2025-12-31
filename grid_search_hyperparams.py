@@ -9,7 +9,7 @@ import torch
 import torch.nn.functional as F
 
 from SPair71k.devkit.SPairDataset import SPairDataset
-from dinov2 import extract_dense_features, pixel_to_patch_coord, patch_to_pixel_coord
+from helper_functions import extract_dense_features, pixel_to_patch_coord, patch_to_pixel_coord
 from matching_strategies import find_best_match_window_softargmax
 from models.dinov2.dinov2.models.vision_transformer import vit_base
 from pck import compute_pck_spair71k
@@ -98,8 +98,8 @@ def run_grid_search(model, val_dataset, device, results_dir):
     """Run grid search over K and temperature parameters."""
 
     #hyperparameter ranges
-    K_values = [3, 5, 7, 9]
-    temperature_values = [0.5, 1.0, 2.0]
+    K_values = [5, 7, 9, 11, 13, 15, 19, 23]
+    temperature_values = [0.01, 0.05, 0.1, 0.2]
     thresholds = [0.05, 0.1, 0.2]
 
     Path(results_dir).mkdir(parents=True, exist_ok=True)
