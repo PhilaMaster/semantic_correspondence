@@ -17,7 +17,7 @@ import yaml  # type: ignore
 logger = logging.getLogger("dinov3")
 
 
-# This type represents a list of results, e.g. baselines for an evaluation.
+# This type represents a list of results_SPair71K, e.g. baselines for an evaluation.
 Results: Any = pd.DataFrame
 
 try:
@@ -130,7 +130,7 @@ def _map_scalar_list(x: List[Scalar]) -> List[Scalar]:
 
 
 def make(data: Dict[str, Union[str, int, float]]) -> Results:
-    """Construct results from a dictionary of scalars or lists of scalars."""
+    """Construct results_SPair71K from a dictionary of scalars or lists of scalars."""
 
     map_value: Callable[..., List[Scalar]]
     if all((isinstance(value, Sequence) for key, value in data.items())):
@@ -144,13 +144,13 @@ def make(data: Dict[str, Union[str, int, float]]) -> Results:
 
 
 def vstack(*results_sequence: Sequence[Results]) -> Results:
-    """Concatenate (vertically) results."""
+    """Concatenate (vertically) results_SPair71K."""
 
     return pd.concat(results_sequence, axis=0, ignore_index=True)
 
 
 def load(f: PathOrFileLikeObject, file_format: Optional[FileFormat] = None) -> Results:
-    """Load results from a file via a path-like object or from a file-like object."""
+    """Load results_SPair71K from a file via a path-like object or from a file-like object."""
 
     if isinstance(f, (str, PathLike)):
         file_format = FileFormat.guess(f)
@@ -176,7 +176,7 @@ def load(f: PathOrFileLikeObject, file_format: Optional[FileFormat] = None) -> R
 
 
 def load_collection(f: PathOrFileLikeObject) -> Dict[str, Results]:
-    """Load a collection of results from a file via a path-like object or from a file-like object."""
+    """Load a collection of results_SPair71K from a file via a path-like object or from a file-like object."""
 
     results_collection = pd.read_excel(f, sheet_name=None)
 
@@ -192,7 +192,7 @@ def save(
     f: PathOrFileLikeObject,
     file_format: Optional[FileFormat] = None,
 ) -> None:
-    """Save results to a file via a path-like object or to a file-like object."""
+    """Save results_SPair71K to a file via a path-like object or to a file-like object."""
 
     _assert_valid_dtypes(results)
 
@@ -236,7 +236,7 @@ def save_collection(
     results_collection: Dict[str, Results],
     f: PathOrFileLikeObject,
 ) -> None:
-    """Save a collection of results to a file via a path-like object or to a file-like object."""
+    """Save a collection of results_SPair71K to a file via a path-like object or to a file-like object."""
 
     if not HAS_OPENPYXL:
         logger.warning("openpyxl need to be installed, passing...")

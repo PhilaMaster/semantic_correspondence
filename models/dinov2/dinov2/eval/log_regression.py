@@ -269,7 +269,7 @@ def eval_log_regression(
     finetune_dataset. Then, the final model is trained on a concatenation of
     train_dataset and finetune_dataset, and is evaluated on val_dataset.
     If there is no finetune_dataset, the value of C is the one that yields
-    the best results on a random 10% subset of the train dataset
+    the best results_SPair71K on a random 10% subset of the train dataset
     """
 
     start = time.time()

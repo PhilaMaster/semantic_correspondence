@@ -24,7 +24,7 @@ from dinov3.eval.setup import load_model_and_context
 from dinov3.run.init import job_context
 from dinov3.hub.depthers import _get_depther_config, dinov3_vit7b16_dd
 
-RESULTS_FILENAME = "results-depth.csv"
+RESULTS_FILENAME = "results_SPair71K-depth.csv"
 MAIN_METRICS = [".*_abs_rel", ".*_a1", ".*_rmse"]
 
 
@@ -49,11 +49,11 @@ def eval_depther_with_model(*, depther: torch.nn.Module, config: DepthConfig):
     )
     test_config_name = config.datasets.test.split(":", 1)[0]
     test_save_dir = os.path.join(config.output_dir, test_config_name)
-    # reduce results
+    # reduce results_SPair71K
     if distributed.is_main_process():
         if not os.path.exists(test_save_dir):
             os.makedirs(test_save_dir)
-        with open(os.path.join(test_save_dir, "results.json"), "w") as f:
+        with open(os.path.join(test_save_dir, "results_SPair71K.json"), "w") as f:
             json.dump(results_dict, f, indent=4)
     for metric, values in results_dict.items():
         results_dict[metric] = float(torch.Tensor(values).nanmean())  # result can be NaN if ground truth is all masked

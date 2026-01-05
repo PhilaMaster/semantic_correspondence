@@ -149,7 +149,7 @@ def run_grid_search(model, val_dataset, device, results_dir):
             all_results.append(result)
             print(f"  Time: {inference_time:.2f}s")
 
-    #save all results to CSV
+    #save all results_SPair71K to CSV
     df_results = pd.DataFrame(all_results)
     csv_path = f'{results_dir}/grid_search_results.csv'
     df_results.to_csv(csv_path, index=False)

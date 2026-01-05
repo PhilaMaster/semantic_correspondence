@@ -34,7 +34,7 @@ def make_inference(
         dense_predictor (nn.Module): model to use for evaluating on dense tasks.
             requires a `predict` method.
         inference_mode (str, optional): Do inference on the whole image (mode="whole"), or by
-            adopting a sliding window approach to aggregate the results on
+            adopting a sliding window approach to aggregate the results_SPair71K on
             smaller patches of the input image (mode="slide"). Defaults to "whole".
         rescale_to (tuple, optional): Resizing the output of the model prediction to the
             shape of the ground truth. Defaults to (512, 512).
@@ -47,7 +47,7 @@ def make_inference(
             - softmax is used when each pixel belongs to a single class (multiclass),
             - sigmoid is used when pixel can belong to multiple classes (multilabel). Defaults to None (identity).
     Returns:
-        Tensor: The segmentation results created from the input image.
+        Tensor: The segmentation results_SPair71K created from the input image.
     """
     assert inference_mode in ["whole", "slide"]
     if inference_mode == "slide":
@@ -110,7 +110,7 @@ def slide_inference(
         crop_size (tuple): (h_crop, w_crop)
         stride (tuple): (h_stride, w_stride)
     Returns:
-        Tensor: The output results from model of each input image.
+        Tensor: The output results_SPair71K from model of each input image.
     """
     h_stride, w_stride = stride
     h_crop, w_crop = crop_size

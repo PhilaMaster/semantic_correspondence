@@ -48,7 +48,7 @@ for model_name in to_eval:
     print("=" * 80)
     print()
 
-    # Create results directory
+    # Create results_SPair71K directory
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     model_short_name = model_name.replace("vitb14_finetuned_only_model_", "").replace(".pth", "")
     results_dir = f'results/validation_{model_short_name}_{timestamp}'
@@ -89,7 +89,7 @@ for model_name in to_eval:
         thresholds
     )
 
-    # Save results
+    # Save results_SPair71K
     save_results(
         per_image_metrics,
         all_keypoint_metrics,

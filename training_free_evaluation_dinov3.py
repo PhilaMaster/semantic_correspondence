@@ -19,9 +19,9 @@ import pandas as pd
 patch_size = 16
 img_size = 512
 
-#results folder with timestamp
+#results_SPair71K folder with timestamp
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-results_dir = f'results/dinov3/large/dinov3_large_spair71k_{timestamp}_{img_size}'
+results_dir = f'results_SPair71K/dinov3/large/dinov3_large_spair71k_{timestamp}_{img_size}'
 os.makedirs(results_dir, exist_ok=True)
 print(f"Results will be saved to: {results_dir}")
 

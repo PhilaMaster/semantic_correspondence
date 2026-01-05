@@ -67,7 +67,7 @@ def get_uncertain_point_coords_with_randomness(
     # It is crucial to calculate uncertainty based on the sampled
     # prediction value for the points. Calculating uncertainties of the
     # coarse predictions first and sampling them for points leads to
-    # incorrect results.  To illustrate this: assume uncertainty func(
+    # incorrect results_SPair71K.  To illustrate this: assume uncertainty func(
     # logits)=-abs(logits), a sampled point between two coarse
     # predictions with -1 and 1 logits has 0 logits, and therefore 0
     # uncertainty value. However, if we calculate uncertainties for the

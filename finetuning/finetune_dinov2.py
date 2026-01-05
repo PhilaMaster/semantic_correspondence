@@ -175,9 +175,9 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
 
-    # Create results directory with timestamp
+    # Create results_SPair71K directory with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    # results_dir = f'results/dinov2_base_finetuned_{n_blocks_to_unfreeze}blocks_{timestamp}'
+    # results_dir = f'results_SPair71K/dinov2_base_finetuned_{n_blocks_to_unfreeze}blocks_{timestamp}'
     results_dir = f'results_dinov2/ts_{timestamp}'
     os.makedirs(results_dir, exist_ok=True)
     print(f"Results will be saved to: {results_dir}")
@@ -283,15 +283,15 @@ def main():
 
             # Evaluate on test set
             # print("\nEvaluating on test set...")
-            # results, per_image_metrics = simple_evaluate(model, val_dataset, device)
+            # results_SPair71K, per_image_metrics = simple_evaluate(model, val_dataset, device)
 
             # print("\nTest Results:")
-            # for key, value in results.items():
+            # for key, value in results_SPair71K.items():
             #     print(f"  {key}: {value['mean']:.2f}% ± {value['std']:.2f}% "
             #           f"(median: {value['median']:.2f}%)")
 
             # Save best model
-            # current_pck = results['pck@0.10']['mean']
+            # current_pck = results_SPair71K['pck@0.10']['mean']
             # if current_pck > best_pck:
             #     best_pck = current_pck
             #     best_epoch = epoch + 1
@@ -312,10 +312,10 @@ def main():
             #     'epoch': epoch + 1,
             #     'train_loss': train_loss,
             #     'learning_rate': current_lr,
-                # 'test_results': results
+                # 'test_results': results_SPair71K
             # })
 
-            # Save intermediate results
+            # Save intermediate results_SPair71K
             # with open(f'{results_dir}/training_history.json', 'w') as f:
             #     json.dump(training_history, f, indent=2)
 
@@ -333,7 +333,7 @@ def main():
         #
         # final_results, final_per_image = evaluate(model, test_dataset, device)
 
-        # Save final detailed results
+        # Save final detailed results_SPair71K
         # with open(f'{results_dir}/final_results.json', 'w') as f:
         #     json.dump({
         #         'best_epoch': best_epoch,
@@ -341,7 +341,7 @@ def main():
         #         'temperature': temperature,
         #         'learning_rate': learning_rate,
         #         'num_epochs': num_epochs,
-        #         # 'results': final_results
+        #         # 'results_SPair71K': final_results
         #     }, f, indent=2)
 
     # Save per-category analysis
@@ -365,7 +365,7 @@ def main():
     # with open(f'{results_dir}/per_category_results.json', 'w') as f:
     #     json.dump(category_stats, f, indent=2)
 
-    # print("\nPer-category results:")
+    # print("\nPer-category results_SPair71K:")
     # for category, stats in sorted(category_stats.items()):
     #     pck_01 = stats['pck@0.10']['mean']
     #     n_samples = stats['pck@0.10']['n_samples']

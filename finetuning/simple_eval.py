@@ -18,7 +18,7 @@ def simple_evaluate(model, dataset, device, thresholds=[0.05, 0.1, 0.2]):
         thresholds: list of PCK thresholds to evaluate
 
     Returns:
-        results: dictionary with PCK scores at different thresholds
+        results_SPair71K: dictionary with PCK scores at different thresholds
     """
     model.eval()
     per_image_metrics = []

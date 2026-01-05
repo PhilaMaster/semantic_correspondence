@@ -561,7 +561,7 @@ def load_and_analyze(results_dir):
         f.write("Categories most sensitive to threshold changes:\n")
         f.write(df_sensitivity.tail(5).to_string(index=False))
 
-    print(f"\n✓ Analysis complete! All results saved to: {results_dir}")
+    print(f"\n✓ Analysis complete! All results_SPair71K saved to: {results_dir}")
     print(f"✓ Keypoint stats saved in: {keypoint_stats_dir}")
     return df_keypoints, overall_stats, per_category_stats
 

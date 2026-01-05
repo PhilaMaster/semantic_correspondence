@@ -35,10 +35,10 @@ class BaseSampler(metaclass=ABCMeta):
         """Sample positive and negative bboxes.
 
         This is a simple implementation of bbox sampling given candidates,
-        assigning results and ground truth bboxes.
+        assigning results_SPair71K and ground truth bboxes.
 
         Args:
-            assign_result (:obj:`AssignResult`): Bbox assigning results.
+            assign_result (:obj:`AssignResult`): Bbox assigning results_SPair71K.
             bboxes (Tensor): Boxes to be sampled from.
             gt_bboxes (Tensor): Ground truth bboxes.
             gt_labels (Tensor, optional): Class labels of ground truth bboxes.

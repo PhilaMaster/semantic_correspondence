@@ -311,7 +311,7 @@ class RandomCropWithLabel(torch.nn.Module):
 
 class HorizontalFlipAug(torch.nn.Module):
     def forward(self, img_list, label):
-        """Call function to apply test time augment transforms on results.
+        """Call function to apply test time augment transforms on results_SPair71K.
 
         Args:
             img (PIL image | torch.Tensor | List[PIL image]): Data to transform.

@@ -17,9 +17,9 @@ pck_alpha = 0.1 #mock, it's not used in evaluation
 use_windowed_softargmax = False
 
 
-#results folder with timestamp
+#results_SPair71K folder with timestamp
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-results_dir = f'results/dinov2_base_spair71k_finetuned_1epoch_2blocks'
+results_dir = f'results_SPair71K/dinov2_base_spair71k_finetuned_1epoch_2blocks'
 results_dir+= '_wsoftargmax_' if use_windowed_softargmax else '_argmax_'
 results_dir+=timestamp
 os.makedirs(results_dir, exist_ok=True)

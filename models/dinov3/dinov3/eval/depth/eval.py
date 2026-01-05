@@ -92,11 +92,11 @@ def evaluate_depther_with_dataloader(
     - device: the (CUDA) device to evaluate on
     - metrics: metrics to report during evaluation
     - eval_range (float, float): depth evaluation range
-    - result_config (ResultConfig): contains parameters for results saving
-    - save_dir (str): saving directory for results (metrics and predictions)
+    - result_config (ResultConfig): contains parameters for results_SPair71K saving
+    - save_dir (str): saving directory for results_SPair71K (metrics and predictions)
     - ignored_value (float): value to ignore from the ground truth
     - eval_mask_type (str): evaluation mask. See _EvalCropType Enum for choices
-    - reduce_results (bool): if True, results are averaged across all samples (default=True)
+    - reduce_results (bool): if True, results_SPair71K are averaged across all samples (default=True)
     - align_least_squares (bool): if True, aligns prediction in scale and shift with GT using least squares error minimization
     - use_tta (bool): if True, uses left-right flipping test time augmentation (default False).
     """
@@ -160,7 +160,7 @@ def evaluate_depther_with_dataloader(
             preds = preds.to(device)
 
         if result_config.save_results:
-            assert preds.shape[0] == 1, "Cannot save results for more than one decoder"
+            assert preds.shape[0] == 1, "Cannot save results_SPair71K for more than one decoder"
             save_predictions(
                 img=batch_img[: preds.shape[0]],
                 pred=preds[0],

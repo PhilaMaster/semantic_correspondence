@@ -16,6 +16,28 @@ def extract_dense_features(model, img_tensor, training=False):
         dense_features = patch_tokens.reshape(B, H_patches, W_patches, D)
     return dense_features
 
+def extract_dense_features_SAM(predictor, img_tensor, training=False):
+    """Extract dense features from SAM encoder given an input image tensor."""
+    import torch.nn.functional as F
+    if training:
+        raise NotImplementedError("Training mode not implemented for SAM feature extraction.")
+
+    img_1024 = F.interpolate(img_tensor, size=(1024, 1024), mode='bilinear', align_corners=False)
+
+    #(SAM uses numpy BGR)
+    img_np = img_1024[0].permute(1, 2, 0).cpu().numpy()
+    img_np = (img_np * 255).astype('uint8')  # scala a 0-255
+
+    predictor.set_image(img_np)
+
+    #(shape: [1, 256, 64, 64])
+    embeddings = predictor.features
+
+    #reshape to [1, H_patches, W_patches, D]
+    #B, D, H, W = embeddings.shape
+    dense_features = embeddings.permute(0, 2, 3, 1)  # [1, 64, 64, 256]
+
+    return dense_features
 
 def extract_layer_features(model, img_tensor, layer_idx):
     with torch.no_grad():

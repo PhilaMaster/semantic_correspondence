@@ -184,6 +184,6 @@ if __name__ == '__main__':
             trg_save_path = os.path.join(visual_path, split, category, filename) + '.jpg'
             new_im.save(trg_save_path)
 
-            print('\tSaving results:  %s' % trg_save_path)
+            print('\tSaving results_SPair71K:  %s' % trg_save_path)
 
     print('\nPair visualization finished in %s.' % visual_path)

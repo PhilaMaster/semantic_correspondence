@@ -21,7 +21,7 @@ def multi_apply(func, *args, **kwargs):
 
     Returns:
         tuple(list): A tuple containing multiple list, each list contains \
-            a kind of returned results by the function
+            a kind of returned results_SPair71K by the function
     """
     pfunc = partial(func, **kwargs) if kwargs else func
     map_results = map(pfunc, *args)

@@ -46,7 +46,7 @@ from dinov3.run.init import job_context
 
 logger = logging.getLogger("dinov3")
 
-RESULTS_FILENAME = "results-linear.csv"
+RESULTS_FILENAME = "results_SPair71K-linear.csv"
 # Can be several keys, depending on if multiple test sets are chosen and if doing few-shot
 MAIN_METRICS = [".*_accuracy(_mean)?"]
 
