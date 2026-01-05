@@ -1,2 +1,6 @@
 finetune_dinov3.py
 __pycache__/
+*pairs.csv
+PF-dataset-PASCAL/
+PF-dataset/
+*.pth
