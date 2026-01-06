@@ -16,28 +16,104 @@ def extract_dense_features(model, img_tensor, training=False):
         dense_features = patch_tokens.reshape(B, H_patches, W_patches, D)
     return dense_features
 
-def extract_dense_features_SAM(predictor, img_tensor, training=False):
+def extract_dense_features_SAM(model, img_tensor, training=False, image_size=1024):
     """Extract dense features from SAM encoder given an input image tensor."""
     import torch.nn.functional as F
+    from torch.cuda.amp import autocast
+    import torch.nn as nn
+    
+    context = torch.no_grad() if not training else torch.enable_grad()
+    
+    with context:
+        img_resized = F.interpolate(img_tensor, size=(image_size, image_size), mode='bilinear', align_corners=False)
+
+        # Interpolate positional embeddings if using non-standard size
+        if image_size != 1024:
+            original_pos_embed = model.image_encoder.pos_embed
+            
+            # pos_embed shape: [1, 64, 64, 1024] for 1024x1024 input
+            batch_size, old_grid_size, _, embed_dim = original_pos_embed.shape
+            new_grid_size = image_size // 16
+            
+            # reshape and interpolate: [1, 64, 64, 1024] -> [1, 1024, 64, 64] -> [1, 1024, new_grid_size, 32]
+            pos_tokens_resized = F.interpolate(
+                original_pos_embed.permute(0, 3, 1, 2),
+                size=(new_grid_size, new_grid_size),
+                mode='bicubic',
+                align_corners=False
+            ).permute(0, 2, 3, 1)
+            
+            model.image_encoder.pos_embed = nn.Parameter(pos_tokens_resized, requires_grad=training)
+        
+        # Use autocast only in eval mode for speed
+        if training:
+            embeddings = model.image_encoder(img_resized)  # [1, 256, H, W]
+        else:
+            with autocast():
+                embeddings = model.image_encoder(img_resized)
+        
+        # restore original positional embeddings
+        if image_size != 1024:
+            model.image_encoder.pos_embed = original_pos_embed
+
+        # reshape to [1, H_patches, W_patches, D]
+        dense_features = embeddings.permute(0, 2, 3, 1)
+    
+    return dense_features
+
+def extract_dense_features_SAM_dep(model, img_tensor, training=False, image_size=1024):
+    """Extract dense features from SAM encoder with flexible input size."""
+    import torch.nn.functional as F
+    from torch.cuda.amp import autocast
+    import torch.nn as nn
+    
     if training:
         raise NotImplementedError("Training mode not implemented for SAM feature extraction.")
 
-    img_1024 = F.interpolate(img_tensor, size=(1024, 1024), mode='bilinear', align_corners=False)
+    with torch.no_grad():
+        img_resized = F.interpolate(img_tensor, size=(image_size, image_size), mode='bilinear', align_corners=False)
 
-    #(SAM uses numpy BGR)
-    img_np = img_1024[0].permute(1, 2, 0).cpu().numpy()
-    img_np = (img_np * 255).astype('uint8')  # scala a 0-255
+        if image_size != 1024:
+            original_pos_embed = model.image_encoder.pos_embed
+            
+            # Shape: [1, 64, 64, 1024] = [batch, height, width, embed_dim]
+            batch_size, old_grid_h, old_grid_w, embed_dim = original_pos_embed.shape
+            
+            if old_grid_h != old_grid_w:
+                raise ValueError(f"Expected square grid, got {old_grid_h}x{old_grid_w}")
+            
+            old_grid_size = old_grid_h  # 64
+            new_grid_size = image_size // 16  # 32 per 512x512
+            
+            # Permute per interpolazione: [1, 64, 64, 1024] -> [1, 1024, 64, 64]
+            pos_tokens = original_pos_embed.permute(0, 3, 1, 2)
+            
+            # Interpolazione bicubica
+            pos_tokens_resized = F.interpolate(
+                pos_tokens,
+                size=(new_grid_size, new_grid_size),
+                mode='bicubic',
+                align_corners=False
+            )
+            
+            # Ripristina formato originale: [1, 1024, 32, 32] -> [1, 32, 32, 1024]
+            pos_tokens_resized = pos_tokens_resized.permute(0, 2, 3, 1)
+            
+            # Wrappa in nn.Parameter (necessario per l'assegnazione)
+            model.image_encoder.pos_embed = nn.Parameter(pos_tokens_resized, requires_grad=False)
+        
+        with autocast():
+            embeddings = model.image_encoder(img_resized)
+        
+        # Ripristina pos_embed originale
+        if image_size != 1024:
+            model.image_encoder.pos_embed = original_pos_embed
 
-    predictor.set_image(img_np)
-
-    #(shape: [1, 256, 64, 64])
-    embeddings = predictor.features
-
-    #reshape to [1, H_patches, W_patches, D]
-    #B, D, H, W = embeddings.shape
-    dense_features = embeddings.permute(0, 2, 3, 1)  # [1, 64, 64, 256]
+        # Reshape output
+        dense_features = embeddings.permute(0, 2, 3, 1)
 
     return dense_features
+
 
 def extract_layer_features(model, img_tensor, layer_idx):
     with torch.no_grad():

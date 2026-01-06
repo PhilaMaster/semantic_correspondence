@@ -37,26 +37,27 @@ os.makedirs(results_dir, exist_ok=True)
 print(f"Results will be saved to: {results_dir}")
 
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cuda" if torch.cuda.is_available() else "cpu" #use GPU if available
 sam = sam_model_registry[model_type](checkpoint=checkpoint_paths[model_type])
 sam.to(device)
+sam.half()
 sam.eval()
-predictor = SamPredictor(sam)
+#predictor = SamPredictor(sam)
 
-device = "cuda" if torch.cuda.is_available() else "cpu" #use GPU if available
 print("Using device:", device)
 
 
 test_dataset = SPairDataset(pair_ann_path, layout_path, image_path, dataset_size, pck_alpha, datatype='test')
 
 per_image_metrics, all_keypoint_metrics, total_inference_time_sec = evaluate_SAM(
-    predictor,
+    sam,
     test_dataset,
     device,
     thresholds,
     use_windowed_softargmax,
     K=9,
-    temperature=0.1
+    temperature=0.1,
+    image_size = 512
 )
 
 save_results(per_image_metrics, all_keypoint_metrics, results_dir, total_inference_time_sec, thresholds)
