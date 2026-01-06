@@ -1,6 +1,7 @@
 import torch
-from SPair71k.devkit.SPairDataset import SPairDataset
-from evaluate import evaluate, save_results
+# from SPair71k.devkit.SPairDataset import SPairDataset
+from pf_pascal.PFPascalDataset import PFPascalDataset
+from evaluate import evaluate, save_results, evaluate_no_spair71k
 from models.dinov2.dinov2.models.vision_transformer import vit_base, vit_small, vit_large
 import os
 from datetime import datetime
@@ -8,19 +9,20 @@ from datetime import datetime
 #parameters
 thresholds = [0.05, 0.1, 0.2]
 
-base = 'Spair71k'
-pair_ann_path = f'{base}/PairAnnotation'
-layout_path = f'{base}/Layout'
-image_path = f'{base}/JPEGImages'
-dataset_size = 'large'
-pck_alpha = 0.1 #mock, it's not used in evaluation
+base = "pf_pascal"
+# base = 'Spair71k'
+# pair_ann_path = f'{base}/PairAnnotation'
+# layout_path = f'{base}/Layout'
+# image_path = f'{base}/JPEGImages'
+# dataset_size = 'large'
+# pck_alpha = 0.1 #mock, it's not used in evaluation
 use_windowed_softargmax = False
 
 
 #results_SPair71K folder with timestamp
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-results_dir = f'results_SPair71K/dinov2_base_spair71k_finetuned_1epoch_2blocks'
-results_dir+= '_wsoftargmax_' if use_windowed_softargmax else '_argmax_'
+results_dir = f'results_PF_Pascal/dinov2/zero-shot/dinov2_base_pfpascal'
+# results_dir+= '_wsoftargmax_' if use_windowed_softargmax else '_argmax_'
 results_dir+=timestamp
 os.makedirs(results_dir, exist_ok=True)
 print(f"Results will be saved to: {results_dir}")
@@ -37,15 +39,16 @@ model = vit_base(
 
 device = "cuda" if torch.cuda.is_available() else "cpu" #use GPU if available
 print("Using device:", device)
-ckpt = torch.load("models/dinov2/dinov2_training_checkpoint_epoch1_10temp.pth", map_location=device)
-model.load_state_dict(ckpt['model_state_dict'], strict=True)
+ckpt = torch.load("models/dinov2/weights/dinov2_vitb14_pretrain.pth", map_location=device)
+model.load_state_dict(ckpt, strict=True)
 model.to(device)
 model.eval()
 
 
-test_dataset = SPairDataset(pair_ann_path, layout_path, image_path, dataset_size, pck_alpha, datatype='test')
+# test_dataset = SPairDataset(pair_ann_path, layout_path, image_path, dataset_size, pck_alpha, datatype='test')
+test_dataset = PFPascalDataset(base, split='test')
 
-per_image_metrics, all_keypoint_metrics, total_inference_time_sec = evaluate(
+per_image_metrics, all_keypoint_metrics, total_inference_time_sec = evaluate_no_spair71k(
     model,
     test_dataset,
     device,
