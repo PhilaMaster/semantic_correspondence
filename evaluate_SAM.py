@@ -11,7 +11,7 @@ from matching_strategies import find_best_match_argmax, find_best_match_window_s
 from pck import compute_pck_spair71k
 import torch.nn.functional as F
 
-def evaluate_SAM(model, dataset, device, thresholds=[0.05, 0.1, 0.2], use_windowed_softargmax=False, early_stop=False,K=5, temperature=0.1):
+def evaluate_SAM(model, dataset, device, thresholds=[0.05, 0.1, 0.2], use_windowed_softargmax=False, early_stop=False,K=5, temperature=0.1, image_size = 1024):
     inference_start_time = time.time()
     per_image_metrics = []
     all_keypoint_metrics = []
@@ -23,16 +23,16 @@ def evaluate_SAM(model, dataset, device, thresholds=[0.05, 0.1, 0.2], use_window
             tgt_tensor = sample['trg_img'].unsqueeze(0).to(device)  # [1, 3, H, W]
 
             # resize to 1024x1024
-            src_tensor = F.interpolate(src_tensor, size=(1024, 1024), mode='bilinear', align_corners=False)
-            tgt_tensor = F.interpolate(tgt_tensor, size=(1024, 1024), mode='bilinear', align_corners=False)
+            src_tensor = F.interpolate(src_tensor, size=(image_size, image_size), mode='bilinear', align_corners=False)
+            tgt_tensor = F.interpolate(tgt_tensor, size=(image_size, image_size), mode='bilinear', align_corners=False)
 
             # save original sizes ([C, H, W] -> (W, H))
             src_original_size = (sample['src_imsize'][2], sample['src_imsize'][1])
             tgt_original_size = (sample['trg_imsize'][2], sample['trg_imsize'][1])
 
             # extract dense features
-            src_features = extract_dense_features_SAM(model, src_tensor)
-            tgt_features = extract_dense_features_SAM(model, tgt_tensor)
+            src_features = extract_dense_features_SAM(model, src_tensor, image_size=image_size)
+            tgt_features = extract_dense_features_SAM(model, tgt_tensor, image_size=image_size)
 
             # reshape
             _, H, W, D = tgt_features.shape  # B=1
@@ -52,7 +52,7 @@ def evaluate_SAM(model, dataset, device, thresholds=[0.05, 0.1, 0.2], use_window
                 src_x, src_y = src_kps[i]
                 tgt_x, tgt_y = trg_kps[i]
 
-                patch_x, patch_y = pixel_to_patch_coord(src_x, src_y, src_original_size, patch_size=16, resized_size=1024)
+                patch_x, patch_y = pixel_to_patch_coord(src_x, src_y, src_original_size, patch_size=16, resized_size=image_size)
 
                 # extract source feature at the keypoint patch
                 src_feature = src_features[0, patch_y, patch_x, :]  # [D]
@@ -70,7 +70,7 @@ def evaluate_SAM(model, dataset, device, thresholds=[0.05, 0.1, 0.2], use_window
                 else:
                     match_patch_x, match_patch_y = find_best_match_argmax(similarities, W)
                 match_x, match_y = patch_to_pixel_coord(
-                    match_patch_x, match_patch_y, tgt_original_size, patch_size=16, resized_size=1024
+                    match_patch_x, match_patch_y, tgt_original_size, patch_size=16, resized_size=image_size
                 )
 
                 pred_matches.append([match_x, match_y])
@@ -116,7 +116,7 @@ def evaluate_SAM(model, dataset, device, thresholds=[0.05, 0.1, 0.2], use_window
                 'kps_ids': kps_ids,
             })
 
-            if (idx + 1) % 100 == 0:
+            if idx == 0 or idx==1 or idx==2 or idx==5 or idx==10 or idx==20 or (idx + 1) % 100 == 0:
                 print(f"Processed {idx + 1} pairs...")
 
             # debug early stopping
