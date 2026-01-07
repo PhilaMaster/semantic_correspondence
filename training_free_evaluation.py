@@ -22,7 +22,7 @@ use_windowed_softargmax = False
 #results_SPair71K folder with timestamp
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 results_dir = f'results_PF_Pascal/dinov2/zero-shot/dinov2_base_pfpascal'
-# results_dir+= '_wsoftargmax_' if use_windowed_softargmax else '_argmax_'
+results_dir+= '_wsoftargmax_' if use_windowed_softargmax else '_argmax_'
 results_dir+=timestamp
 os.makedirs(results_dir, exist_ok=True)
 print(f"Results will be saved to: {results_dir}")

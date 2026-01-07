@@ -2,13 +2,15 @@
 Quick test script to verify finetuning pipeline works correctly.
 Runs only a few iterations to check for errors before full training.
 """
-
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
 from SPair71k.devkit.SPairDataset import SPairDataset
 from helper_functions import extract_dense_features, pixel_to_patch_coord
-from models.dinov2.dinov2.models.vision_transformer import vit_base
+from models.dinov3.dinov3.models.vision_transformer import vit_base
 
 
 def freeze_model(model):
@@ -29,7 +31,7 @@ def unfreeze_last_n_blocks(model, n_blocks):
 
 
 def compute_cross_entropy_loss(src_features, tgt_features, src_kps, trg_kps,
-                               src_original_size, tgt_original_size, temperature=10.0):
+                               src_original_size, tgt_original_size, patch_size, img_size, temperature=10.0):
     """Compute cross-entropy loss for semantic correspondence"""
     _, H, W, D = tgt_features.shape
     tgt_flat = tgt_features.reshape(H * W, D)
@@ -40,10 +42,10 @@ def compute_cross_entropy_loss(src_features, tgt_features, src_kps, trg_kps,
         src_x, src_y = src_kps[i]
         tgt_x, tgt_y = trg_kps[i]
         
-        src_patch_x, src_patch_y = pixel_to_patch_coord(src_x, src_y, src_original_size)
+        src_patch_x, src_patch_y = pixel_to_patch_coord(src_x, src_y, src_original_size, patch_size=patch_size, resized_size=img_size)
         src_feature = src_features[0, src_patch_y, src_patch_x, :]
         
-        tgt_patch_x, tgt_patch_y = pixel_to_patch_coord(tgt_x, tgt_y, tgt_original_size)
+        tgt_patch_x, tgt_patch_y = pixel_to_patch_coord(tgt_x, tgt_y, tgt_original_size, patch_size=patch_size, resized_size=img_size)
         
         similarities = F.cosine_similarity(
             src_feature.unsqueeze(0),
@@ -72,21 +74,30 @@ def quick_test():
     n_test_samples = 3   # Only 3 for evaluation
     temperature = 10.0
     learning_rate = 1e-4
+    img_size = 512
+    patch_size = 16
     
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"\n✓ Using device: {device}")
     
     # Load model
-    print("\n[1/5] Loading DINOv2 model...")
+    print("\n[1/5] Loading DINOv3 model...")
+    # model = vit_base(
+    #     img_size=(img_size, img_size),
+    #     patch_size=patch_size,
+    #     num_register_tokens=0,
+    #     block_chunks=0,
+    #     init_values=1.0,
+    # )
     model = vit_base(
-        img_size=(518, 518),
-        patch_size=14,
-        num_register_tokens=0,
-        block_chunks=0,
-        init_values=1.0,
-    )
+        img_size= (img_size, img_size),        # base / nominal size
+        patch_size=patch_size,             # patch size that matches the checkpoint
+        n_storage_tokens=4,
+        layerscale_init= 1.0,
+        mask_k_bias=True,
+    )    
     
-    ckpt = torch.load("../models/dinov2/dinov2_vitb14_pretrain.pth", map_location=device)
+    ckpt = torch.load("../models/dinov3/weights/dinov3_vitb16_pretrain.pth", map_location=device)
     model.load_state_dict(ckpt, strict=True)
     model.to(device)
     print("✓ Model loaded")
@@ -101,14 +112,22 @@ def quick_test():
     print(f"✓ Trainable: {trainable_params:,} / {total_params:,} ({100*trainable_params/total_params:.2f}%)")
     
     # Load dataset (small subset)
+
+    base = '../Spair71k'
+    pair_ann_path = f'{base}/PairAnnotation'
+    layout_path = f'{base}/Layout'
+    image_path = f'{base}/JPEGImages'
+    dataset_size = 'large'
+    pck_alpha = 0.1 #mock, it's not used in evaluation
+
     print(f"\n[3/5] Loading {n_train_samples} training samples...")
     base = '../Spair71k'
     train_dataset = SPairDataset(
-        f'{base}/PairAnnotation',
-        f'{base}/Layout',
-        f'{base}/JPEGImages',
-        'large',
-        0.1,
+        pair_ann_path,
+        layout_path,
+        image_path,
+        dataset_size,
+        pck_alpha,
         datatype='trn'
     )
     print(f"✓ Dataset loaded (total: {len(train_dataset)} samples)")
@@ -131,8 +150,8 @@ def quick_test():
         src_tensor = sample['src_img'].unsqueeze(0).to(device)
         tgt_tensor = sample['trg_img'].unsqueeze(0).to(device)
         
-        src_tensor = F.interpolate(src_tensor, size=(518, 518), mode='bilinear', align_corners=False)
-        tgt_tensor = F.interpolate(tgt_tensor, size=(518, 518), mode='bilinear', align_corners=False)
+        src_tensor = F.interpolate(src_tensor, size=(img_size, img_size), mode='bilinear', align_corners=False)
+        tgt_tensor = F.interpolate(tgt_tensor, size=(img_size, img_size), mode='bilinear', align_corners=False)
         
         src_original_size = (sample['src_imsize'][2], sample['src_imsize'][1])
         tgt_original_size = (sample['trg_imsize'][2], sample['trg_imsize'][1])
@@ -149,6 +168,8 @@ def quick_test():
             src_features, tgt_features,
             src_kps, trg_kps,
             src_original_size, tgt_original_size,
+            patch_size=patch_size,
+            img_size=img_size,
             temperature=temperature
         )
         
@@ -166,11 +187,11 @@ def quick_test():
     model.eval()
     
     test_dataset = SPairDataset(
-        f'{base}/PairAnnotation',
-        f'{base}/Layout',
-        f'{base}/JPEGImages',
-        'large',
-        0.1,
+        pair_ann_path,
+        layout_path,
+        image_path,
+        dataset_size,
+        pck_alpha,
         datatype='test'
     )
     

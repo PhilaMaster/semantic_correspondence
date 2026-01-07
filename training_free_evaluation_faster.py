@@ -5,38 +5,58 @@ import numpy as np
 import torch
 import time
 
-from SPair71k.devkit.SPairDataset import SPairDataset
+# from SPair71k.devkit.SPairDataset import SPairDataset
+from pf_pascal.PFPascalDataset import PFPascalDataset
 from helper_functions import extract_dense_features, pixel_to_patch_coord, patch_to_pixel_coord
-from matching_strategies import find_best_match_argmax
-from pck import compute_pck_spair71k
-from models.dinov3.dinov3.models.vision_transformer import vit_large
+from matching_strategies import find_best_match_argmax, find_best_match_window_softargmax
+from pck import compute_pck_spair71k, compute_pck_pfpascal
+# from models.dinov3.dinov3.models.vision_transformer import vit_large
+from models.dinov2.dinov2.models.vision_transformer import vit_base
 import torch.nn.functional as F
 import os
 from datetime import datetime
 import pandas as pd
 
-patch_size = 16
-img_size = 512
+patch_size = 14
+img_size = 518
+
+base = 'pf_pascal'
+# pair_ann_path = f'{base}/PairAnnotation'
+# layout_path = f'{base}/Layout'
+# image_path = f'{base}/JPEGImages'
+# dataset_size = 'large'
+# pck_alpha = 0.1 #mock, it's not used in evaluation
+use_windowed_softargmax = True
 
 #results_SPair71K folder with timestamp
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-results_dir = f'results_SPair71K/dinov3/large/dinov3_large_spair71k_{timestamp}_{img_size}'
+results_dir = f'results_PF_Pascal/dinov2/finetuned/dinov2_base_pfpascal'
+results_dir+= '_wsoftargmax_' if use_windowed_softargmax else '_argmax_'
+results_dir+=timestamp
 os.makedirs(results_dir, exist_ok=True)
 print(f"Results will be saved to: {results_dir}")
 
 
 
-model = vit_large (
-    img_size= (img_size, img_size),        # base / nominal size
-    patch_size=patch_size,             # patch size that matches the checkpoint
-    n_storage_tokens=4,
-    layerscale_init= 1.0,
-    mask_k_bias=True,
+# model = vit_large (
+#     img_size= (img_size, img_size),        # base / nominal size
+#     patch_size=patch_size,             # patch size that matches the checkpoint
+#     n_storage_tokens=4,
+#     layerscale_init= 1.0,
+#     mask_k_bias=True,
+# )
+
+model = vit_base(
+    img_size=(img_size, img_size),        # base / nominal size
+    patch_size=14,             # patch size that matches the checkpoint
+    num_register_tokens=0,     # <- no registers
+    block_chunks=0,
+    init_values=1.0,  # LayerScale initialization
 )
 
 device = "cuda" if torch.cuda.is_available() else "cpu" #use GPU if available
 print("Using device:", device)
-ckpt = torch.load("models/dinov3/weights/dinov3_vitl16_pretrain.pth", map_location=device)
+ckpt = torch.load("models/dinov2/weights/dinov2_vitb14_finetuned_only_model_10temp.pth", map_location=device)
 model.load_state_dict(ckpt, strict=True)
 model.to(device)
 model.eval()
@@ -46,14 +66,9 @@ per_image_metrics = []
 all_keypoint_metrics = []
 category_metrics = defaultdict(lambda: defaultdict(list))
 
-base = 'Spair71k'
-pair_ann_path = f'{base}/PairAnnotation'
-layout_path = f'{base}/Layout'
-image_path = f'{base}/JPEGImages'
-dataset_size = 'large'
-pck_alpha = 0.1 #mock, it's not used in evaluation
 
-test_dataset = SPairDataset(pair_ann_path, layout_path, image_path, dataset_size, pck_alpha, datatype='test')
+# test_dataset = SPairDataset(pair_ann_path, layout_path, image_path, dataset_size, pck_alpha, datatype='test')
+test_dataset = PFPascalDataset(base, split='test')
 inference_start_time = time.time()
 
 for idx, sample in enumerate(test_dataset):  # type: ignore
@@ -82,7 +97,7 @@ for idx, sample in enumerate(test_dataset):  # type: ignore
     trg_kps = sample['trg_kps'].numpy()  # [N, 2]
     kps_ids = sample['kps_ids']          # [N]
 
-    trg_bbox = sample['trg_bbox']
+    # trg_bbox = sample['trg_bbox']
 
     pred_matches = []
 
@@ -104,7 +119,7 @@ for idx, sample in enumerate(test_dataset):  # type: ignore
         )  # [H*W]
 
         #find best matching patch in target
-        match_patch_x, match_patch_y = find_best_match_argmax(similarities, W)
+        match_patch_x, match_patch_y = find_best_match_window_softargmax(similarities, W, H, K=5, temperature=0.1)
         match_x, match_y = patch_to_pixel_coord(
             match_patch_x, match_patch_y, tgt_original_size, patch_size=patch_size, resized_size=img_size
         )
@@ -116,11 +131,14 @@ for idx, sample in enumerate(test_dataset):  # type: ignore
     category = sample['category']
 
     for threshold in thresholds:
-        pck, correct_mask, distances = compute_pck_spair71k(
-            pred_matches,
-            trg_kps.tolist(),
-            trg_bbox,  # (W, H)
-            threshold
+        # pck, correct_mask, distances = compute_pck_spair71k(
+        #     pred_matches,
+        #     trg_kps.tolist(),
+        #     trg_bbox,  # (W, H)
+        #     threshold
+        # )
+        pck, correct_mask, distances = compute_pck_pfpascal(
+            pred_matches, trg_kps, tgt_original_size, threshold
         )
         image_pcks[threshold] = pck
         category_metrics[category][threshold].append(pck)
