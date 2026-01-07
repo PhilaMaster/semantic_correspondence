@@ -7,7 +7,7 @@ from matching_strategies import find_best_match_argmax
 from pck import compute_pck_spair71k
 
 
-def simple_evaluate(model, dataset, device, thresholds=[0.05, 0.1, 0.2]):
+def simple_evaluate(model, dataset, device, img_size, patch_size, thresholds=[0.05, 0.1, 0.2]):
     """
     Evaluate model on test set using PCK metric
 
@@ -31,8 +31,8 @@ def simple_evaluate(model, dataset, device, thresholds=[0.05, 0.1, 0.2]):
             src_tensor = sample['src_img'].unsqueeze(0).to(device)
             tgt_tensor = sample['trg_img'].unsqueeze(0).to(device)
 
-            src_tensor = F.interpolate(src_tensor, size=(518, 518), mode='bilinear', align_corners=False)
-            tgt_tensor = F.interpolate(tgt_tensor, size=(518, 518), mode='bilinear', align_corners=False)
+            src_tensor = F.interpolate(src_tensor, size=(img_size, img_size), mode='bilinear', align_corners=False)
+            tgt_tensor = F.interpolate(tgt_tensor, size=(img_size, img_size), mode='bilinear', align_corners=False)
 
             src_original_size = (sample['src_imsize'][2], sample['src_imsize'][1])
             tgt_original_size = (sample['trg_imsize'][2], sample['trg_imsize'][1])
@@ -56,7 +56,7 @@ def simple_evaluate(model, dataset, device, thresholds=[0.05, 0.1, 0.2]):
                 src_x, src_y = src_kps[i]
 
                 # Get source feature
-                patch_x, patch_y = pixel_to_patch_coord(src_x, src_y, src_original_size)
+                patch_x, patch_y = pixel_to_patch_coord(src_x, src_y, src_original_size, patch_size=patch_size, resized_size=img_size)
                 src_feature = src_features[0, patch_y, patch_x, :]
 
                 # Compute similarities
@@ -69,7 +69,8 @@ def simple_evaluate(model, dataset, device, thresholds=[0.05, 0.1, 0.2]):
                 # Find best match using argmax
                 match_patch_x, match_patch_y = find_best_match_argmax(similarities, W)
                 match_x, match_y = patch_to_pixel_coord(
-                    match_patch_x, match_patch_y, tgt_original_size
+                    match_patch_x, match_patch_y, tgt_original_size,
+                    patch_size=patch_size, resized_size=img_size
                 )
 
                 pred_matches.append([match_x, match_y])

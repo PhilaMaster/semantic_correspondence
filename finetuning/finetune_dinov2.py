@@ -45,7 +45,7 @@ def unfreeze_last_n_blocks(model, n_blocks):
 
 
 def compute_cross_entropy_loss(src_features, tgt_features, src_kps, trg_kps,
-                               src_original_size, tgt_original_size, temperature=10.0):
+                               src_original_size, tgt_original_size, img_size, patch_size, temperature=10.0):
     """
     Compute cross-entropy loss for semantic correspondence.
     Treats correspondence as a classification problem where each target patch is a class.
@@ -57,6 +57,8 @@ def compute_cross_entropy_loss(src_features, tgt_features, src_kps, trg_kps,
         trg_kps: [N, 2] target keypoints in pixel coordinates
         src_original_size: (width, height) of original source image
         tgt_original_size: (width, height) of original target image
+        img_size: resizing size used during feature extraction
+        patch_size: size of each patch
         temperature: softmax temperature (higher = more peaked distribution)
 
     Returns:
@@ -72,12 +74,11 @@ def compute_cross_entropy_loss(src_features, tgt_features, src_kps, trg_kps,
         tgt_x, tgt_y = trg_kps[i]
 
         # Get source feature at keypoint location
-        src_patch_x, src_patch_y = pixel_to_patch_coord(src_x, src_y, src_original_size)
+        src_patch_x, src_patch_y = pixel_to_patch_coord(src_x, src_y, src_original_size, patch_size=patch_size, resized_size=img_size)
         src_feature = src_features[0, src_patch_y, src_patch_x, :]  # [D]
 
         # Get ground truth target patch coordinates
-        tgt_patch_x, tgt_patch_y = pixel_to_patch_coord(tgt_x, tgt_y, tgt_original_size)
-
+        tgt_patch_x, tgt_patch_y = pixel_to_patch_coord(tgt_x, tgt_y, tgt_original_size, patch_size=patch_size, resized_size=img_size)
         # Compute cosine similarities with all target patches
         similarities = F.cosine_similarity(
             src_feature.unsqueeze(0),  # [1, D]
@@ -98,7 +99,7 @@ def compute_cross_entropy_loss(src_features, tgt_features, src_kps, trg_kps,
     return torch.stack(losses).mean()
 
 
-def train_epoch(model, dataloader, optimizer, device, epoch, temperature=10.0):
+def train_epoch(model, dataloader, optimizer, device, epoch, img_size, patch_size, temperature=10.0):
     """
     Train for one epoch
 
@@ -108,6 +109,8 @@ def train_epoch(model, dataloader, optimizer, device, epoch, temperature=10.0):
         optimizer: optimizer
         device: 'cuda' or 'cpu'
         epoch: current epoch number
+        img_size: size to which images are resized for feature extraction
+        patch_size: size of each patch
         temperature: softmax temperature for loss
 
     Returns:
@@ -123,8 +126,8 @@ def train_epoch(model, dataloader, optimizer, device, epoch, temperature=10.0):
         tgt_tensor = sample['trg_img'].to(device)  # [1, 3, H, W]
 
         # Resize to 518x518 (DINOv2 expects this size)
-        src_tensor = F.interpolate(src_tensor, size=(518, 518), mode='bilinear', align_corners=False)
-        tgt_tensor = F.interpolate(tgt_tensor, size=(518, 518), mode='bilinear', align_corners=False)
+        src_tensor = F.interpolate(src_tensor, size=(img_size, img_size), mode='bilinear', align_corners=False)
+        tgt_tensor = F.interpolate(tgt_tensor, size=(img_size, img_size), mode='bilinear', align_corners=False)
 
         # Store original sizes for coordinate conversion
         src_original_size = (sample['src_imsize'][2], sample['src_imsize'][1])
@@ -143,6 +146,7 @@ def train_epoch(model, dataloader, optimizer, device, epoch, temperature=10.0):
             src_features, tgt_features,
             src_kps, trg_kps,
             src_original_size, tgt_original_size,
+            img_size, patch_size,
             temperature=temperature
         )
 
