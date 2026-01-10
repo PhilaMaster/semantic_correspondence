@@ -1,0 +1,38 @@
+{
+  "dinov3_1temp": {
+    "pck@0.05": 19.246465326252817,
+    "pck@0.10": 30.647824425829228,
+    "pck@0.20": 45.932290873731,
+    "temperature": 1,
+    "n_blocks": 2,
+    "train_loss": 5.318709722081954,
+    "results_dir": "finetuning/temperature_comparison/dinov3/t_1_blocks_2_20260107_153549"
+  },
+  "dinov3_5temp": {
+    "pck@0.05": 40.74022868877348,
+    "pck@0.10": 53.23881822063137,
+    "pck@0.20": 64.36376085267754,
+    "temperature": 5,
+    "n_blocks": 2,
+    "train_loss": 1.2990323413776623,
+    "results_dir": "finetuning/temperature_comparison/dinov3/t_5_blocks_2_20260108_151250"
+  },
+  "dinov3_10temp": {
+    "pck@0.05": 48.734307085897214,
+    "pck@0.10": 63.46637152504296,
+    "pck@0.20": 74.25017993039023,
+    "temperature": 10,
+    "n_blocks": 2,
+    "train_loss": 0.44859323549249536,
+    "results_dir": "finetuning/temperature_comparison/dinov3/t_10_blocks_2_20260109_182406"
+  },
+  "dinov3_15temp": {
+    "pck@0.05": 53.9280114237684,
+    "pck@0.10": 67.52290725199433,
+    "pck@0.20": 77.84671042123465,
+    "temperature": 15,
+    "n_blocks": 2,
+    "train_loss": 0.3749425111638459,
+    "results_dir": "finetuning/temperature_comparison/dinov3/t_15_blocks_2_20260110_103910"
+  }
+}
