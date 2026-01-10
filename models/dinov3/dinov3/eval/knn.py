@@ -43,7 +43,7 @@ from dinov3.run.init import job_context
 logger = logging.getLogger("dinov3")
 
 
-RESULTS_FILENAME = "results-knn.csv"
+RESULTS_FILENAME = "results_SPair71K-knn.csv"
 MAIN_METRICS = [".* Top 1"]
 
 
@@ -167,7 +167,7 @@ class KnnModule(torch.nn.Module):
 
     def forward(self, features_rank):
         """
-        Compute the results on all values of `self.ks` neighbors from the full `self.max_k`
+        Compute the results_SPair71K on all values of `self.ks` neighbors from the full `self.max_k`
         """
         assert all(k <= self.max_k for k in self.ks)
 
@@ -326,7 +326,7 @@ def eval_knn_with_model(*, model: torch.nn.Module, autocast_dtype, config: KnnEv
     config.eval.batch_size = config.eval.batch_size or config.train.batch_size
     test_data_loader = make_test_data_loader(config.eval, transform)
 
-    # Setting up save results function
+    # Setting up save results_SPair71K function
     save_results_func = None
     if config.save_results:
         save_results_func = partial(default_save_results_func, output_dir=config.output_dir)

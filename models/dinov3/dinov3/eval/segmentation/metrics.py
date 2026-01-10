@@ -22,11 +22,11 @@ def calculate_segmentation_metrics(
     metrics=["mIoU"],
     beta=1,
 ):
-    """Calculate the segmentation metrics after aggregating all the intermediate results.
+    """Calculate the segmentation metrics after aggregating all the intermediate results_SPair71K.
 
     Args:
         pre_eval_results (list): Lists of (area_intersect, area_union, area_pred_label, and area_label).
-            These are intermediate results to compute the final metrics such as iou, fscore, etc.
+            These are intermediate results_SPair71K to compute the final metrics such as iou, fscore, etc.
         metrics (list): Metrics to compute. Defaults to ["mIoU"].
         beta (int): Parameter for computing F-score. Defaults to 1 (for computing F1-score).
 

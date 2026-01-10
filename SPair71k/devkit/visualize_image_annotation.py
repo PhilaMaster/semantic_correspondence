@@ -161,6 +161,6 @@ if __name__ == '__main__':
 
             new_im.save(final_visual_path)
 
-            print('\tSaving results:  %s' % final_visual_path)
+            print('\tSaving results_SPair71K:  %s' % final_visual_path)
 
     print('\nImage visualization finished in %s.' % visual_path)

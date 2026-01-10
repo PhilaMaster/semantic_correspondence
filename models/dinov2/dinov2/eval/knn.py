@@ -169,7 +169,7 @@ class KnnModule(torch.nn.Module):
 
     def forward(self, features_rank):
         """
-        Compute the results on all values of `self.nb_knn` neighbors from the full `self.max_k`
+        Compute the results_SPair71K on all values of `self.nb_knn` neighbors from the full `self.max_k`
         """
         assert all(k <= self.max_k for k in self.nb_knn)
 
@@ -299,7 +299,7 @@ def eval_knn(
     logger.info("Start the k-NN classification.")
     _, results_dict = evaluate(model_with_knn, val_dataloader, postprocessors, metrics, device)
 
-    # Averaging the results over the n tries for each value of n_per_class
+    # Averaging the results_SPair71K over the n tries for each value of n_per_class
     for n_per_class, knn_module in knn_module_dict.items():
         first_try = list(knn_module.keys())[0]
         k_list = knn_module[first_try].nb_knn

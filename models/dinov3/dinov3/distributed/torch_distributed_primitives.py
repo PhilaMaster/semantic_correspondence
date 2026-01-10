@@ -15,7 +15,7 @@ from .torch_distributed_wrapper import get_default_process_group, get_world_size
 def reduce_dict(input_dict: Dict[Any, torch.Tensor], average: bool = True) -> Dict[Any, torch.Tensor]:
     """
     Reduce the values in the dictionary from all processes so that all processes
-    have the averaged results. Returns a dictionary with the same fields as
+    have the averaged results_SPair71K. Returns a dictionary with the same fields as
     the input dictionary, after reduction.
 
     Args:
@@ -56,7 +56,7 @@ def gather_all_tensors(result: torch.Tensor, group: Optional[Any] = None) -> Lis
 
     Args:
         result: the value to sync
-        group: the process group to gather results from. Defaults to all processes (world)
+        group: the process group to gather results_SPair71K from. Defaults to all processes (world)
 
     Return:
         list with size equal to the process group where element i corresponds to result tensor from process i

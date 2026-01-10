@@ -183,7 +183,7 @@ class PatchMerging(BaseModule):
                 Default: None.
 
         Returns:
-            tuple: Contains merged results and its spatial shape.
+            tuple: Contains merged results_SPair71K and its spatial shape.
 
                 - x (Tensor): Has shape (B, Merged_H * Merged_W, C_out)
                 - out_size (tuple[int]): Spatial shape of x, arrange as
@@ -381,7 +381,7 @@ class DetrTransformerEncoder(TransformerLayerSequence):
         """Forward function for `TransformerCoder`.
 
         Returns:
-            Tensor: forwarded results with shape [num_query, bs, embed_dims].
+            Tensor: forwarded results_SPair71K with shape [num_query, bs, embed_dims].
         """
         x = super(DetrTransformerEncoder, self).forward(*args, **kwargs)
         if self.post_norm is not None:
@@ -487,13 +487,13 @@ class Transformer(BaseModule):
                 decoder, with the same shape as `x`.
 
         Returns:
-            tuple[Tensor]: results of decoder containing the following tensor.
+            tuple[Tensor]: results_SPair71K of decoder containing the following tensor.
 
                 - out_dec: Output from decoder. If return_intermediate_dec \
                       is True output has shape [num_dec_layers, bs,
                       num_query, embed_dims], else has shape [1, bs, \
                       num_query, embed_dims].
-                - memory: Output results from encoder, with shape \
+                - memory: Output results_SPair71K from encoder, with shape \
                       [bs, embed_dims, h, w].
         """
         bs, c, h, w = x.shape
@@ -542,7 +542,7 @@ class DeformableDetrTransformerDecoder(TransformerLayerSequence):
                 points on the feature map, has shape
                 (bs, num_levels, 2)
             reg_branch: (obj:`nn.ModuleList`): Used for
-                refining the regression results. Only would
+                refining the regression results_SPair71K. Only would
                 be passed when with_box_refine is True,
                 otherwise would be passed a `None`.
 
@@ -772,7 +772,7 @@ class DeformableDetrTransformer(Transformer):
 
 
         Returns:
-            tuple[Tensor]: results of decoder containing the following tensor.
+            tuple[Tensor]: results_SPair71K of decoder containing the following tensor.
 
                 - inter_states: Outputs from decoder. If
                     return_intermediate_dec is True output has shape \
@@ -789,7 +789,7 @@ class DeformableDetrTransformer(Transformer):
                     (batch, h*w, num_classes). \
                     Only would be returned when `as_two_stage` is True, \
                     otherwise None.
-                - enc_outputs_coord_unact: The regression results \
+                - enc_outputs_coord_unact: The regression results_SPair71K \
                     generated from encoder's feature maps., has shape \
                     (batch, h*w, 4). Only would \
                     be returned when `as_two_stage` is True, \

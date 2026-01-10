@@ -39,7 +39,7 @@ from dinov3.utils.dtype import as_torch_dtype
 logger = logging.getLogger("dinov3")
 
 
-RESULTS_FILENAME = "results-log-regression.csv"
+RESULTS_FILENAME = "results_SPair71K-log-regression.csv"
 MAIN_METRICS = ["top-1(_mean)?"]
 
 
@@ -323,7 +323,7 @@ def eval_log_regression_with_model(*, model: torch.nn.Module, autocast_dtype, co
     val_dataset. Then, the final model is trained on a concatenation of
     train_dataset and val_dataset, and is evaluated on test_dataset.
     If there is no val_dataset, the value of C is the one that yields
-    the best results on a random 10% subset of the train dataset
+    the best results_SPair71K on a random 10% subset of the train dataset
     """
     start = time.time()
     cudnn.benchmark = True
@@ -355,7 +355,7 @@ def eval_log_regression_with_model(*, model: torch.nn.Module, autocast_dtype, co
     test_metric_type = config.eval.test_metric_type or config.train.val_metric_type
     test_metric = build_classification_metric(test_metric_type, num_classes=num_classes, dataset=test_dataset)
 
-    # Setting up save results function
+    # Setting up save results_SPair71K function
     save_results_func = None
     if config.save_results:
         save_results_func = partial(default_save_results_func, output_dir=config.output_dir)

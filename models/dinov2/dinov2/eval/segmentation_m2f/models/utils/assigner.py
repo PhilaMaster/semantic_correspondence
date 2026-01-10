@@ -16,7 +16,7 @@ except ImportError:
 
 
 class AssignResult(metaclass=ABCMeta):
-    """Collection of assign results."""
+    """Collection of assign results_SPair71K."""
 
     def __init__(self, num_gts, gt_inds, labels):
         self.num_gts = num_gts
@@ -151,7 +151,7 @@ class MaskHungarianAssigner(BaseAssigner):
         # 4. assign backgrounds and foregrounds
         # assign all indices to backgrounds first
         assigned_gt_inds[:] = 0
-        # assign foregrounds based on matching results
+        # assign foregrounds based on matching results_SPair71K
         assigned_gt_inds[matched_row_inds] = matched_col_inds + 1
         assigned_labels[matched_row_inds] = gt_labels[matched_col_inds]
         return AssignResult(num_gts, assigned_gt_inds, labels=assigned_labels)

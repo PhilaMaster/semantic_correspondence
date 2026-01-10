@@ -19,7 +19,7 @@ from dinov3.run.init import job_context
 
 logger = logging.getLogger("dinov3")
 
-RESULTS_FILENAME = "results-semantic-segmentation.csv"
+RESULTS_FILENAME = "results_SPair71K-semantic-segmentation.csv"
 MAIN_METRICS = ["mIoU"]
 
 

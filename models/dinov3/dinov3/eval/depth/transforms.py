@@ -129,7 +129,7 @@ class LeftRightFlipAug(Aug):
         self._flip = flip
 
     def __call__(self, img, label=None):
-        """Call function to apply test time augment transforms on results.
+        """Call function to apply test time augment transforms on results_SPair71K.
 
         Args:
             img: Data to transform.

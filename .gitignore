@@ -1,5 +1,13 @@
+<<<<<<< HEAD
 finetune_dinov3.py
 __pycache__/
 PF-dataset-PASCAL/
 *.csv
+=======
+finetune_dinov3_old.py
+__pycache__/
+*pairs.csv
+PF-dataset-PASCAL/
+PF-dataset/
+>>>>>>> 8b7f4f338225152979e893cd1e74486f736319df
 *.pth

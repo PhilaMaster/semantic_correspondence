@@ -38,7 +38,7 @@ def get_args_parser(
         "--output-dir",
         default="",
         type=str,
-        help="Output directory to write results and logs",
+        help="Output directory to write results_SPair71K and logs",
     )
     parser.add_argument(
         "--opts",

@@ -32,11 +32,11 @@ class MaskPseudoSampler(BaseSampler):
         """Directly returns the positive and negative indices  of samples.
 
         Args:
-            assign_result (:obj:`AssignResult`): Assigned results
+            assign_result (:obj:`AssignResult`): Assigned results_SPair71K
             masks (torch.Tensor): Bounding boxes
             gt_masks (torch.Tensor): Ground truth boxes
         Returns:
-            :obj:`SamplingResult`: sampler results
+            :obj:`SamplingResult`: sampler results_SPair71K
         """
         pos_inds = torch.nonzero(assign_result.gt_inds > 0, as_tuple=False).squeeze(-1).unique()
         neg_inds = torch.nonzero(assign_result.gt_inds == 0, as_tuple=False).squeeze(-1).unique()
