@@ -26,7 +26,7 @@ layout_path = f'{base}/Layout'
 image_path = f'{base}/JPEGImages'
 dataset_size = 'large'
 pck_alpha = 0.1 #mock, it's not used in evaluation
-use_windowed_softargmax = True
+use_windowed_softargmax = False
 
 #results_SPair71K folder with timestamp
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -119,7 +119,10 @@ for idx, sample in enumerate(test_dataset):  # type: ignore
         )  # [H*W]
 
         #find best matching patch in target
-        match_patch_x, match_patch_y = find_best_match_window_softargmax(similarities, W, H, K=5, temperature=15.0)
+        
+        # match_patch_x, match_patch_y = find_best_match_window_softargmax(similarities, W, H, K=5, temperature=0.1)
+        
+        match_patch_x, match_patch_y = find_best_match_argmax(similarities, W)
         match_x, match_y = patch_to_pixel_coord(
             match_patch_x, match_patch_y, tgt_original_size, patch_size=patch_size, resized_size=img_size
         )
