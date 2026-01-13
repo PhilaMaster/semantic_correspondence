@@ -1,0 +1,3 @@
+For dinov3 finetuned the best hyperparameter for wsargmax are:
+K=5
+temperature=0.2
