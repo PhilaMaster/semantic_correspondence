@@ -5,8 +5,9 @@ import numpy as np
 import torch
 import time
 
-from SPair71k.devkit.SPairDataset import SPairDataset
-# from pf_pascal.PFPascalDataset import PFPascalDataset
+# from SPair71k.devkit.SPairDataset import SPairDataset
+from pf_pascal.PFPascalDataset import PFPascalDataset
+# from pf_willow.PFWillowDataset import PFWillowDataset
 from helper_functions import extract_dense_features, pixel_to_patch_coord, patch_to_pixel_coord
 from matching_strategies import find_best_match_argmax, find_best_match_window_softargmax
 from pck import compute_pck_spair71k, compute_pck_pfpascal
@@ -20,17 +21,17 @@ import pandas as pd
 patch_size = 16
 img_size = 512
 
-base = 'SPair71k'  #path to SPair71k dataset
-pair_ann_path = f'{base}/PairAnnotation'
-layout_path = f'{base}/Layout'
-image_path = f'{base}/JPEGImages'
-dataset_size = 'large'
-pck_alpha = 0.1 #mock, it's not used in evaluation
+base = 'pf_pascal'  #path to pf_pascal dataset
+# pair_ann_path = f'{base}/PairAnnotation'
+# layout_path = f'{base}/Layout'
+# image_path = f'{base}/JPEGImages'
+# dataset_size = 'large'
+# pck_alpha = 0.1 #mock, it's not used in evaluation
 use_windowed_softargmax = True
 
 #results_SPair71K folder with timestamp
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-results_dir = f'results_SPair71k/dinov3/finetuned/dinov3_base_spair71k'
+results_dir = f'results_PF_Pascal/dinov3/finetuned/dinov3_base_pfpascal'
 results_dir+= '_wsoftargmax_' if use_windowed_softargmax else '_argmax_'
 results_dir+=timestamp
 os.makedirs(results_dir, exist_ok=True)
@@ -67,8 +68,9 @@ all_keypoint_metrics = []
 category_metrics = defaultdict(lambda: defaultdict(list))
 
 
-test_dataset = SPairDataset(pair_ann_path, layout_path, image_path, dataset_size, pck_alpha, datatype='test')
-# test_dataset = PFPascalDataset(base, split='test')
+#test_dataset = SPairDataset(pair_ann_path, layout_path, image_path, dataset_size, pck_alpha, datatype='test')
+test_dataset = PFPascalDataset(base, split='test')
+#test_dataset = PFWillowDataset(base, split='test')
 inference_start_time = time.time()
 
 for idx, sample in enumerate(test_dataset):  # type: ignore
@@ -97,7 +99,7 @@ for idx, sample in enumerate(test_dataset):  # type: ignore
     trg_kps = sample['trg_kps'].numpy()  # [N, 2]
     kps_ids = sample['kps_ids']          # [N]
 
-    trg_bbox = sample['trg_bbox']
+    #trg_bbox = sample['trg_bbox']
 
     pred_matches = []
 
@@ -119,10 +121,13 @@ for idx, sample in enumerate(test_dataset):  # type: ignore
         )  # [H*W]
 
         #find best matching patch in target
-        match_patch_x, match_patch_y = find_best_match_window_softargmax(similarities, W, H, K=5, temperature=15.0)
+        # if use_windowed_softargmax:
+        match_patch_x, match_patch_y = find_best_match_window_softargmax(similarities, W, H, K=5, temperature=0.1)
+        # else:
+        #     match_patch_x, match_patch_y = find_best_match_argmax(similarities, W)
         match_x, match_y = patch_to_pixel_coord(
-            match_patch_x, match_patch_y, tgt_original_size, patch_size=patch_size, resized_size=img_size
-        )
+             match_patch_x, match_patch_y, tgt_original_size
+                )
 
         pred_matches.append([match_x, match_y])
 
@@ -131,15 +136,15 @@ for idx, sample in enumerate(test_dataset):  # type: ignore
     category = sample['category']
 
     for threshold in thresholds:
-        pck, correct_mask, distances = compute_pck_spair71k(
-            pred_matches,
-            trg_kps.tolist(),
-            trg_bbox,  # (W, H)
-            threshold
-        )
-        # pck, correct_mask, distances = compute_pck_pfpascal(
-        #     pred_matches, trg_kps, tgt_original_size, threshold
+        # pck, correct_mask, distances = compute_pck_spair71k(
+        #     pred_matches,
+        #     trg_kps.tolist(),
+        #     trg_bbox,  # (W, H)
+        #     threshold
         # )
+        pck, correct_mask, distances = compute_pck_pfpascal(
+            pred_matches, trg_kps, tgt_original_size, threshold
+        )
         image_pcks[threshold] = pck
         category_metrics[category][threshold].append(pck)
 
