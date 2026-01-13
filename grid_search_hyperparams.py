@@ -11,10 +11,13 @@ import torch.nn.functional as F
 from SPair71k.devkit.SPairDataset import SPairDataset
 from helper_functions import extract_dense_features, pixel_to_patch_coord, patch_to_pixel_coord
 from matching_strategies import find_best_match_window_softargmax
-from models.dinov2.dinov2.models.vision_transformer import vit_base
+# from models.dinov2.dinov2.models.vision_transformer import vit_base
+from models.dinov3.dinov3.models.vision_transformer import vit_base
 from pck import compute_pck_spair71k
 
-def evaluate_with_params(model, dataset, device, K, temperature, thresholds=[0.05, 0.1, 0.2]):
+
+
+def evaluate_with_params(model, dataset, device, K, temperature, img_size, patch_size, thresholds=[0.05, 0.1, 0.2]):
     """Evaluate model with specific K and temperature parameters."""
     per_image_metrics = []
 
@@ -24,8 +27,8 @@ def evaluate_with_params(model, dataset, device, K, temperature, thresholds=[0.0
             tgt_tensor = sample['trg_img'].unsqueeze(0).to(device)
 
             # resize to 518x518
-            src_tensor = F.interpolate(src_tensor, size=(518, 518), mode='bilinear', align_corners=False)
-            tgt_tensor = F.interpolate(tgt_tensor, size=(518, 518), mode='bilinear', align_corners=False)
+            src_tensor = F.interpolate(src_tensor, size=(img_size, img_size), mode='bilinear', align_corners=False)
+            tgt_tensor = F.interpolate(tgt_tensor, size=(img_size, img_size), mode='bilinear', align_corners=False)
 
             # save original sizes
             src_original_size = (sample['src_imsize'][2], sample['src_imsize'][1])
@@ -49,7 +52,7 @@ def evaluate_with_params(model, dataset, device, K, temperature, thresholds=[0.0
             # iterate over keypoints
             for i in range(src_kps.shape[0]):
                 src_x, src_y = src_kps[i]
-                patch_x, patch_y = pixel_to_patch_coord(src_x, src_y, src_original_size)
+                patch_x, patch_y = pixel_to_patch_coord(src_x, src_y, src_original_size, patch_size=patch_size, resized_size=img_size)
 
                 # extract source feature
                 src_feature = src_features[0, patch_y, patch_x, :]
@@ -66,7 +69,8 @@ def evaluate_with_params(model, dataset, device, K, temperature, thresholds=[0.0
                     similarities, W, H, K=K, temperature=temperature
                 )
                 match_x, match_y = patch_to_pixel_coord(
-                    match_patch_x, match_patch_y, tgt_original_size
+                    match_patch_x, match_patch_y, tgt_original_size,
+                    patch_size=patch_size, resized_size=img_size
                 )
 
                 pred_matches.append([match_x, match_y])
@@ -98,8 +102,9 @@ def run_grid_search(model, val_dataset, device, results_dir):
     """Run grid search over K and temperature parameters."""
 
     #hyperparameter ranges
-    K_values = [5, 7, 9, 11, 13, 15, 19, 23]
-    temperature_values = [0.01, 0.05, 0.1, 0.2]
+    K_values = [3, 5, 7, 9, 11]
+    #K = 5
+    temperature_values = [0.05, 0.1, 0.2, 0.5, 1.0, 2.0]
     thresholds = [0.05, 0.1, 0.2]
 
     Path(results_dir).mkdir(parents=True, exist_ok=True)
@@ -107,7 +112,7 @@ def run_grid_search(model, val_dataset, device, results_dir):
     print("=" * 80)
     print("GRID SEARCH FOR WINDOWED SOFTARGMAX HYPERPARAMETERS")
     print("=" * 80)
-    print(f"K values: {K_values}")
+    # print(f"K values: {K_values}")
     print(f"Temperature values: {temperature_values}")
     print(f"Total combinations: {len(K_values) * len(temperature_values)}")
     print(f"Validation set size: {len(val_dataset)}")
@@ -203,15 +208,24 @@ def run_grid_search(model, val_dataset, device, results_dir):
 
 if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = vit_base(
-        img_size=(518, 518),  # base / nominal size
-        patch_size=14,  # patch size that matches the checkpoint
-        num_register_tokens=0,  # <- no registers
-        block_chunks=0,
-        init_values=1.0,  # LayerScale initialization
-    )
-    ckpt = torch.load("models/dinov2/dinov2_vitb14_finetuned_only_model_10temp.pth", map_location=device)
-    model.load_state_dict(ckpt, strict=True)
+    img_size = 512
+    patch_size = 16
+    # model = vit_base(
+    #     img_size=(img_size, img_size),  # base / nominal size
+    #     patch_size=patch_size,  # patch size that matches the checkpoint
+    #     num_register_tokens=0,  # <- no registers
+    #     block_chunks=0,
+    #     init_values=1.0,  # LayerScale initialization
+    # )
+    model = vit_base (
+        img_size= (img_size, img_size),        # base / nominal size
+        patch_size=patch_size,             # patch size that matches the checkpoint
+        n_storage_tokens=4,
+        layerscale_init= 1.0,
+        mask_k_bias=True,
+    )    
+    ckpt = torch.load("models/dinov3/weights/finetuned/dinov3_vitb16_finetuned_3bl_0.0001lr_15t.pth", map_location=device)
+    model.load_state_dict(ckpt["model_state_dict"], strict=True)
     model.to(device)
     model.eval()
 
@@ -223,4 +237,4 @@ if __name__ == "__main__":
     pck_alpha = 0.1  # mock, it's not used in evaluation
     val_dataset = SPairDataset(pair_ann_path, layout_path, image_path, dataset_size, pck_alpha, datatype='val')
 
-    df_results, best_params = run_grid_search(model, val_dataset, device, 'grid_search_results/dinov2_base')
+    df_results, best_params = run_grid_search(model, val_dataset, device, 'grid_search_results/dinov3/dinov3_finetuned')

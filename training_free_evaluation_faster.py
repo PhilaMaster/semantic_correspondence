@@ -121,10 +121,17 @@ for idx, sample in enumerate(test_dataset):  # type: ignore
         )  # [H*W]
 
         #find best matching patch in target
+<<<<<<< HEAD
         # if use_windowed_softargmax:
         match_patch_x, match_patch_y = find_best_match_window_softargmax(similarities, W, H, K=5, temperature=0.1)
         # else:
         #     match_patch_x, match_patch_y = find_best_match_argmax(similarities, W)
+=======
+        
+        match_patch_x, match_patch_y = find_best_match_window_softargmax(similarities, W, H, K=5, temperature=0.2)
+        
+        # match_patch_x, match_patch_y = find_best_match_argmax(similarities, W)
+>>>>>>> 34166c35377d5a32d2177a85e2621df4d0b83d87
         match_x, match_y = patch_to_pixel_coord(
              match_patch_x, match_patch_y, tgt_original_size
                 )
