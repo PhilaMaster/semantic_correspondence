@@ -1,0 +1,32 @@
+{
+  "sam_lr_5e-05": {
+    "pck@0.05": 20.8301498408315,
+    "pck@0.10": 30.744451508402374,
+    "pck@0.20": 44.08668713536091,
+    "learning_rate": 0.00005,
+    "temperature": 15,
+    "n_blocks": 2,
+    "train_loss": 0.6955236795907218,
+    "results_dir": "finetuning/learning_rate_comparison/SAM/lr_5e-05_t_15_blocks_2_20260116_083403"
+  },
+  "sam_lr_0001": {
+    "pck@0.05": 23.245910469424036,
+    "pck@0.10": 34.06775409564605,
+    "pck@0.20": 46.92132262174245,
+    "learning_rate": 0.0001,
+    "temperature": 15,
+    "n_blocks": 2,
+    "train_loss": 0.5280034542407472,
+    "results_dir": "finetuning/learning_rate_comparison/SAM/lr_0.0001_t_15_blocks_2_20260116_092005"
+  },
+  "sam_lr_0002": {
+    "pck@0.05": 21.868859888601616,
+    "pck@0.10": 32.329090187254955,
+    "pck@0.20": 45.3681817471788,
+    "learning_rate": 0.0002,
+    "temperature": 15,
+    "n_blocks": 2,
+    "train_loss": 0.48099015661041405,
+    "results_dir": "finetuning/learning_rate_comparison/SAM/lr_0.0002_t_15_blocks_2_20260116_084736"
+  }
+}
