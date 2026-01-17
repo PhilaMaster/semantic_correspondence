@@ -63,7 +63,7 @@ model = vit_base (
 
 device = "cuda" if torch.cuda.is_available() else "cpu" #use GPU if available
 print("Using device:", device)
-ckpt = torch.load(f"finetuning/blocks_comparison/dinov3/lr_{lr}_t_{temp}_blocks_{blocks}_20260110_103910/epoch_1.pth", map_location=device)
+ckpt = torch.load(f"finetuning/blocks_comparison/dinov3/lr_0.0001_t_15_blocks_2_20260110_103910/epoch_1.pth", map_location=device)
 model.load_state_dict(ckpt["model_state_dict"], strict=True)
 model.to(device)
 model.eval()
@@ -132,7 +132,8 @@ for idx, sample in enumerate(test_dataset):  # type: ignore
         
         # match_patch_x, match_patch_y = find_best_match_argmax(similarities, W)
         match_x, match_y = patch_to_pixel_coord(
-             match_patch_x, match_patch_y, tgt_original_size
+             match_patch_x, match_patch_y, tgt_original_size,
+             patch_size=patch_size, resized_size=img_size
                 )
 
         pred_matches.append([match_x, match_y])
