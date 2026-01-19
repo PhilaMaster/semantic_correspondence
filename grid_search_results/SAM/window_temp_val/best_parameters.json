@@ -1,0 +1,26 @@
+[
+  {
+    "threshold": 0.05,
+    "best_K": 5,
+    "best_temperature": 0.05,
+    "best_pck_mean": 27.582402747037435,
+    "best_pck_median": 25.0,
+    "best_pck_std": 25.306754280937316
+  },
+  {
+    "threshold": 0.1,
+    "best_K": 5,
+    "best_temperature": 0.1,
+    "best_pck_mean": 38.322686085923756,
+    "best_pck_median": 36.36363636363637,
+    "best_pck_std": 28.864277254019626
+  },
+  {
+    "threshold": 0.2,
+    "best_K": 5,
+    "best_temperature": 0.2,
+    "best_pck_mean": 50.736419953055986,
+    "best_pck_median": 50.0,
+    "best_pck_std": 30.33877713819681
+  }
+]
