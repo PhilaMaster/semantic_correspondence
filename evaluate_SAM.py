@@ -8,7 +8,7 @@ import torch
 from helper_functions import pixel_to_patch_coord, patch_to_pixel_coord, \
     extract_dense_features_SAM
 from matching_strategies import find_best_match_argmax, find_best_match_window_softargmax
-from pck import compute_pck_spair71k
+from pck import compute_pck_spair71k, compute_pck_pfpascal
 import torch.nn.functional as F
 
 def evaluate_SAM(model, dataset, device, thresholds=[0.05, 0.1, 0.2], use_windowed_softargmax=False, early_stop=False,K=5, temperature=0.1, image_size = 1024):
@@ -86,6 +86,9 @@ def evaluate_SAM(model, dataset, device, thresholds=[0.05, 0.1, 0.2], use_window
                     trg_bbox,
                     threshold
                 )
+                # pck, correct_mask, distances = compute_pck_pfpascal(
+                #     pred_matches, trg_kps, tgt_original_size, threshold
+                # )                
                 image_pcks[threshold] = pck
                 # category_metrics[category][threshold].append(pck)
 
