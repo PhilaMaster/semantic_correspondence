@@ -1,0 +1,129 @@
+{
+  "validation_ensemble_comparison": {
+    "dataset": "SPair71k validation split",
+    "matching_strategy": "score-level weighted fusion",
+    "K": 5,
+    "temperature": 0.2,
+    "metric_focus": "PCK@0.10",
+    "results": [
+      {
+        "rank": 1,
+        "weights": [0.25, 0.65, 0.10],
+        "pck@0.05": {
+          "mean": 58.97,
+          "std": 30.50
+        },
+        "pck@0.10": {
+          "mean": 71.11,
+          "std": 28.65
+        },
+        "pck@0.20": {
+          "mean": 79.75,
+          "std": 26.71
+        },
+        "inference_time_sec": 2421.00,
+        "notes": "Best overall on PCK@0.10 and @0.20"
+      },
+      {
+        "rank": 2,
+        "weights": [0.20, 0.70, 0.10],
+        "pck@0.05": {
+          "mean": 58.80,
+          "std": 30.43
+        },
+        "pck@0.10": {
+          "mean": 71.05,
+          "std": 28.71
+        },
+        "pck@0.20": {
+          "mean": 79.75,
+          "std": 26.63
+        },
+        "inference_time_sec": 2414.87,
+        "notes": "Very close to rank 1; slight edge to DINOv3 (70% vs 65%)"
+      },
+      {
+        "rank": 3,
+        "weights": [0.30, 0.60, 0.10],
+        "pck@0.05": {
+          "mean": 58.88,
+          "std": 30.43
+        },
+        "pck@0.10": {
+          "mean": 70.86,
+          "std": 28.68
+        },
+        "pck@0.20": {
+          "mean": 79.58,
+          "std": 26.74
+        },
+        "inference_time_sec": 2453.35,
+        "notes": "Balanced; slightly lower than rank 1 on PCK@0.10"
+      },
+      {
+        "rank": 4,
+        "weights": [0.35, 0.55, 0.10],
+        "pck@0.05": {
+          "mean": 58.52,
+          "std": 30.43
+        },
+        "pck@0.10": {
+          "mean": 70.45,
+          "std": 28.82
+        },
+        "pck@0.20": {
+          "mean": 79.29,
+          "std": 26.88
+        },
+        "inference_time_sec": 2416.20,
+        "notes": "More weight on DINOv2; performance drops slightly"
+      },
+      {
+        "rank": 5,
+        "weights": [0.30, 0.40, 0.30],
+        "pck@0.05": {
+          "mean": 56.67,
+          "std": 30.51
+        },
+        "pck@0.10": {
+          "mean": 68.80,
+          "std": 29.24
+        },
+        "pck@0.20": {
+          "mean": 77.87,
+          "std": 27.19
+        },
+        "inference_time_sec": 2426.02,
+        "notes": "Higher SAM weight (30%) hurts performance"
+      },
+      {
+        "rank": 6,
+        "weights": [0.30, 0.30, 0.40],
+        "pck@0.05": {
+          "mean": 54.38,
+          "std": 30.26
+        },
+        "pck@0.10": {
+          "mean": 66.90,
+          "std": 29.45
+        },
+        "pck@0.20": {
+          "mean": 76.47,
+          "std": 27.42
+        },
+        "inference_time_sec": 2454.21,
+        "notes": "SAM-heavy (40%); worst performance overall"
+      }
+    ],
+    "recommendation": {
+      "best_config": {
+        "weights": [0.25, 0.65, 0.10],
+        "K": 5,
+        "temperature": 0.2
+      },
+      "reasoning": "Highest PCK@0.10 (71.11%) and PCK@0.20 (79.75%) on validation. SAM weight capped at 10%; DINOv3 dominates (65%) with DINOv2 supporting (25%).",
+      "key_insight": "SAM weights >10% consistently degrade performance; best results are when DINOv3 is primary (60–70%) and DINOv2 secondary (20–30%)."
+    },
+    "next_step": "Run the best config [0.25, 0.65, 0.10] with K=5, T=0.2 on the test set and report final numbers."
+  }
+}
