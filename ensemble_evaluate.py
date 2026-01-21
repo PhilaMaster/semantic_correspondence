@@ -12,6 +12,7 @@ from pathlib import Path
 
 from SPair71k.devkit.SPairDataset import SPairDataset
 from pf_pascal.PFPascalDataset import PFPascalDataset
+from pf_willow.PFWillowDataset import PFWillowDataset
 from helper_functions import extract_dense_features, extract_dense_features_SAM, pixel_to_patch_coord, patch_to_pixel_coord
 from matching_strategies import find_best_match_argmax, find_best_match_window_softargmax
 from pck import compute_pck_spair71k, compute_pck_pfpascal
@@ -402,20 +403,21 @@ if __name__ == "__main__":
 
     # Weighted-average fusion weights: [DINOv2, DINOv3, SAM]
     # Start equal; adjust based on validation if desired (e.g., [0.4, 0.3, 0.3])
-    weights = [0.35, 0.45, 0.20]
+    weights = [0.25, 0.65, 0.10]
 
     # Load test dataset
     print("\nLoading test dataset...")
     # test_dataset = SPairDataset(PAIR_ANN_PATH, LAYOUT_PATH, IMAGE_PATH, DATASET_SIZE, 
     #                             PCK_ALPHA, datatype='test')
-    base = 'pf_pascal'
-    test_dataset = PFPascalDataset(base, split='test')
+    base = 'pf_willow'
+    test_dataset = PFWillowDataset(base, split='test')
+
     print(f"✓ Test set loaded: {len(test_dataset)} pairs")
 
     # Results dir
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     wtag = f"{weights[0]:.2f}-{weights[1]:.2f}-{weights[2]:.2f}"
-    results_dir = f'results_SPair71K/ensemble/weighted_avg/K{K}_T{temperature}_w{wtag}_{timestamp}'
+    results_dir = f'results_PF_Willow/ensemble/weighted_avg/K{K}_T{temperature}_w{wtag}_{timestamp}'
     os.makedirs(results_dir, exist_ok=True)
     print(f"Results will be saved to: {results_dir}")
 
