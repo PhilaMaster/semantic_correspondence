@@ -36,13 +36,6 @@ DATASET_SIZE = 'large'
 PCK_ALPHA = 0.1
 THRESHOLDS = [0.05, 0.1, 0.2]
 
-# Feature fusion strategies
-FUSION_STRATEGIES = {
-    'concatenation': 'concat',  # Concatenate features [D1+D2+D3]
-    'average': 'avg',            # Average features
-    'weighted_average': 'weighted_avg'  # Weighted average
-}
-
 CHECKPOINT_PATHS = {
     "DINOv2": "models/dinov2/weights/dinov2_vitb14_finetuned_only_model_10temp.pth",
     "DINOv3": "models/dinov3/weights/finetuned/dinov3_vitb16_finetuned_3bl_0.0001lr_15t.pth",
@@ -117,95 +110,17 @@ def normalize_features(features):
         return F.normalize(features, p=2, dim=1)
 
 
-def fuse_features(src_features_list, fusion_strategy='avg', weights=None):
-    """
-    Fuse features from multiple models.
-    
-    Args:
-        src_features_list: list of [D] tensors
-        fusion_strategy: 'avg', 'concat', or 'weighted_avg'
-        weights: for 'weighted_avg', list of weights (should sum to 1)
-    
-    Returns:
-        fused_feature: [D_fused] tensor
-    """
-    if fusion_strategy == 'avg':
-        # Simple average
-        fused = torch.stack(src_features_list, dim=0).mean(dim=0)
-        
-    elif fusion_strategy == 'concat':
-        # Concatenate all features
-        fused = torch.cat(src_features_list, dim=0)
-        
-    elif fusion_strategy == 'weighted_avg':
-        if weights is None:
-            weights = [1/len(src_features_list)] * len(src_features_list)
-        # Weighted average
-        fused = sum(w * f for w, f in zip(weights, src_features_list))
-        
-    else:
-        raise ValueError(f"Unknown fusion strategy: {fusion_strategy}")
-    
-    return fused
-
-
-def fuse_target_features_batch(tgt_features_list, target_shape, fusion_strategy='avg', weights=None):
-    """
-    Fuse target feature maps.
-    
-    Args:
-        tgt_features_list: list of [H, W, D] tensors (after removing batch dimension)
-        target_shape: shape of largest feature map to use as reference
-        fusion_strategy: 'avg', 'concat', or 'weighted_avg'
-        weights: for 'weighted_avg'
-    
-    Returns:
-        fused_features_flat: [H*W, D_fused] tensor
-    """
-    # If features have different spatial dimensions, interpolate to largest
-    aligned_features = []
-    for feat in tgt_features_list:
-        if feat.shape[:2] != target_shape[:2]:
-            # Reshape to [1, D, H, W] for interpolation
-            feat_reshaped = feat.permute(2, 0, 1).unsqueeze(0)
-            feat_reshaped = F.interpolate(
-                feat_reshaped,
-                size=target_shape[:2],
-                mode='bilinear',
-                align_corners=False
-            )
-            feat = feat_reshaped.squeeze(0).permute(1, 2, 0)
-        aligned_features.append(feat)
-    
-    # Fuse features
-    if fusion_strategy == 'avg':
-        fused = torch.stack(aligned_features, dim=0).mean(dim=0)
-    elif fusion_strategy == 'concat':
-        fused = torch.cat(aligned_features, dim=-1)
-    elif fusion_strategy == 'weighted_avg':
-        if weights is None:
-            weights = [1/len(aligned_features)] * len(aligned_features)
-        fused = sum(w * f for w, f in zip(weights, aligned_features))
-    
-    # Flatten: [H, W, D] -> [H*W, D]
-    H, W, D = fused.shape
-    fused_flat = fused.reshape(H * W, D)
-    
-    return fused_flat
-
-
 def evaluate_ensemble_with_params(
     models_dict,
     dataset,
     device,
     K,
     temperature,
-    fusion_strategy='avg',
-    weights=None,
+    weights,
     thresholds=None
 ):
     """
-    Evaluate ensemble with specific parameters.
+    Evaluate ensemble with weighted_avg fusion.
     
     Args:
         models_dict: dict with 'dinov2', 'dinov3', 'sam' models
@@ -213,8 +128,7 @@ def evaluate_ensemble_with_params(
         device: torch device
         K: window size for softargmax
         temperature: softmax temperature
-        fusion_strategy: 'avg', 'concat', or 'weighted_avg'
-        weights: [w_dinov2, w_dinov3, w_sam] for weighted fusion
+        weights: [w_dinov2, w_dinov3, w_sam] for weighted fusion (must sum to 1)
         thresholds: PCK thresholds
     
     Returns:
@@ -268,10 +182,9 @@ def evaluate_ensemble_with_params(
             src_kps = sample['src_kps'].numpy()
             trg_kps = sample['trg_kps'].numpy()
             kps_ids = sample['kps_ids']
-            # trg_bbox = sample['trg_bbox']
             category = sample['category']
             
-            # Prepare target features for batch processing
+            # Prepare target features for score-level fusion
             tgt_feat_dinov2_squeezed = tgt_feat_dinov2.squeeze(0)  # [H2, W2, D2]
             tgt_feat_dinov3_squeezed = tgt_feat_dinov3.squeeze(0)  # [H3, W3, D3]
             tgt_feat_sam_squeezed    = tgt_feat_sam.squeeze(0)     # [Hs, Ws, Ds]
@@ -288,18 +201,6 @@ def evaluate_ensemble_with_params(
             tgt_v2_flat = F.normalize(tgt_feat_dinov2_squeezed.reshape(H2 * W2, D2), dim=1)
             tgt_v3_flat = F.normalize(tgt_feat_dinov3_squeezed.reshape(H3 * W3, D3), dim=1)
             tgt_s_flat  = F.normalize(tgt_feat_sam_squeezed.reshape(Hs * Ws, Ds),    dim=1)
-
-            # Only build a fused feature map for feature-level fusion
-            if fusion_strategy in ('avg', 'concat'):
-                tgt_fused_flat = fuse_target_features_batch(
-                    [tgt_feat_dinov2_squeezed, tgt_feat_dinov3_squeezed, tgt_feat_sam_squeezed],
-                    ref_shape,
-                    fusion_strategy=fusion_strategy,
-                    weights=weights
-                )
-                tgt_fused_flat = normalize_features(tgt_fused_flat)  # [H_ref*W_ref, D_fused]
-            else:
-                tgt_fused_flat = None
 
             pred_matches = []
             
@@ -320,36 +221,26 @@ def evaluate_ensemble_with_params(
                                                 patch_size=PATCH_SIZE_SAM, resized_size=IMG_SIZE_SAM)
                 src_vs = F.normalize(src_feat_sam[0, pys, pxs, :], dim=0)
 
-                if fusion_strategy == 'weighted_avg':
-                    # Score-level fusion: build per-model sim maps, upsample to ref grid, then weight-sum
-                    sim2 = F.cosine_similarity(src_v2.unsqueeze(0), tgt_v2_flat, dim=1).view(H2, W2)
-                    sim3 = F.cosine_similarity(src_v3.unsqueeze(0), tgt_v3_flat, dim=1).view(H3, W3)
-                    sims = F.cosine_similarity(src_vs.unsqueeze(0),  tgt_s_flat,  dim=1).view(Hs, Ws)
+                # Score-level fusion: build per-model sim maps, upsample to ref grid, then weight-sum
+                sim2 = F.cosine_similarity(src_v2.unsqueeze(0), tgt_v2_flat, dim=1).view(H2, W2)
+                sim3 = F.cosine_similarity(src_v3.unsqueeze(0), tgt_v3_flat, dim=1).view(H3, W3)
+                sims = F.cosine_similarity(src_vs.unsqueeze(0),  tgt_s_flat,  dim=1).view(Hs, Ws)
 
-                    def resize_map(m, H_t, W_t):
-                        if (H_t, W_t) == (H_ref, W_ref):
-                            return m
-                        return F.interpolate(m.unsqueeze(0).unsqueeze(0), size=(H_ref, W_ref),
-                                             mode='bilinear', align_corners=False).squeeze(0).squeeze(0)
+                def resize_map(m, H_t, W_t):
+                    if (H_t, W_t) == (H_ref, W_ref):
+                        return m
+                    return F.interpolate(m.unsqueeze(0).unsqueeze(0), size=(H_ref, W_ref),
+                                         mode='bilinear', align_corners=False).squeeze(0).squeeze(0)
 
-                    sim2_r = resize_map(sim2, H2, W2)
-                    sim3_r = resize_map(sim3, H3, W3)
-                    sims_r = resize_map(sims, Hs, Ws)
+                sim2_r = resize_map(sim2, H2, W2)
+                sim3_r = resize_map(sim3, H3, W3)
+                sims_r = resize_map(sims, Hs, Ws)
 
-                    similarities = (weights[0] * sim2_r + weights[1] * sim3_r + weights[2] * sims_r).reshape(-1)
-                    width_eff, height_eff = W_ref, H_ref
-                else:
-                    # Feature-level fusion (avg/concat) as before
-                    src_fused = fuse_features([src_v2, src_v3, src_vs],
-                                              fusion_strategy=fusion_strategy,
-                                              weights=weights)
-                    src_fused = F.normalize(src_fused.unsqueeze(0), dim=1).squeeze(0)
-                    similarities = F.cosine_similarity(src_fused.unsqueeze(0), tgt_fused_flat, dim=1)
-                    width_eff, height_eff = W_ref, H_ref  # fused grid equals ref grid
+                similarities = (weights[0] * sim2_r + weights[1] * sim3_r + weights[2] * sims_r).reshape(-1)
 
                 # Find best match on ensemble similarity map
                 match_patch_x, match_patch_y = find_best_match_window_softargmax(
-                    similarities, width_eff, height_eff, K=K, temperature=temperature
+                    similarities, W_ref, H_ref, K=K, temperature=temperature
                 )
 
                 # Convert to original image coords (ref grid = SAM)
@@ -362,15 +253,9 @@ def evaluate_ensemble_with_params(
             # Compute PCK
             image_pcks = {}
             for threshold in thresholds:
-                # pck, _, _ = compute_pck_spair71k(
-                #     pred_matches,
-                #     trg_kps.tolist(),
-                #     trg_bbox,
-                #     threshold
-                # )
                 pck, correct_mask, distances = compute_pck_pfpascal(
                     pred_matches, trg_kps, tgt_original_size, threshold
-                    )
+                )
                 image_pcks[threshold] = pck
             per_image_metrics.append({
                 'category': category,
@@ -381,10 +266,6 @@ def evaluate_ensemble_with_params(
                 print(f"  Processed {idx + 1}/{len(dataset)} images")
     
     return per_image_metrics
-
-
-
-
 
 
 # ==================== MAIN ====================
@@ -402,7 +283,6 @@ if __name__ == "__main__":
     temperature = 0.2
 
     # Weighted-average fusion weights: [DINOv2, DINOv3, SAM]
-    # Start equal; adjust based on validation if desired (e.g., [0.4, 0.3, 0.3])
     weights = [0.25, 0.65, 0.10]
 
     # Load test dataset
@@ -429,7 +309,6 @@ if __name__ == "__main__":
         device=device,
         K=K,
         temperature=temperature,
-        fusion_strategy='weighted_avg',
         weights=weights,
         thresholds=THRESHOLDS
     )
@@ -462,29 +341,3 @@ if __name__ == "__main__":
     ])
     df_all.to_csv(f'{results_dir}/per_image_metrics.csv', index=False)
     print(f"Saved overall_stats.json and per_image_metrics.csv to {results_dir}")
-    
-
-#     device = "cuda" if torch.cuda.is_available() else "cpu"
-#     print(f"Using device: {device}")
-    
-#     # Load models
-#     dinov2, dinov3, sam = load_models(device)
-#     models_dict = {'dinov2': dinov2, 'dinov3': dinov3, 'sam': sam}
-    
-#     # Load validation dataset
-#     print(f"\nLoading validation dataset...")
-#     val_dataset = SPairDataset(PAIR_ANN_PATH, LAYOUT_PATH, IMAGE_PATH, DATASET_SIZE, 
-#                                 PCK_ALPHA, datatype='val')
-#     print(f"✓ Validation set loaded: {len(val_dataset)} pairs")
-    
-#     # Create results directory
-#     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-#     results_dir = f'results_SPair71K/ensemble_fusion_{timestamp}'
-#     os.makedirs(results_dir, exist_ok=True)
-    
-#     # Run grid search
-#     print(f"\nResults will be saved to: {results_dir}\n")
-#     run_grid_search_ensemble(models_dict, val_dataset, device, results_dir)
-    
-#     print(f"\n✓ Grid search completed. Results saved to {results_dir}")
-
