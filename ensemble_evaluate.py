@@ -99,15 +99,11 @@ def load_models(device):
     return dinov2, dinov3, sam
 
 
-def normalize_features(features):
-    """L2 normalize features along the feature dimension."""
-    # features: [B, H, W, D] or [H*W, D]
-    if len(features.shape) == 4:
-        # [B, H, W, D] -> normalize over D
-        return F.normalize(features, p=2, dim=-1)
-    else:
-        # [H*W, D] -> normalize over D
-        return F.normalize(features, p=2, dim=1)
+def resize_map(m, H_t, W_t,  H_ref, W_ref):
+    if (H_t, W_t) == (H_ref, W_ref):
+        return m
+    return F.interpolate(m.unsqueeze(0).unsqueeze(0), size=(H_ref, W_ref),
+                            mode='bilinear', align_corners=False).squeeze(0).squeeze(0)
 
 
 def evaluate_ensemble_with_params(
@@ -226,15 +222,11 @@ def evaluate_ensemble_with_params(
                 sim3 = F.cosine_similarity(src_v3.unsqueeze(0), tgt_v3_flat, dim=1).view(H3, W3)
                 sims = F.cosine_similarity(src_vs.unsqueeze(0),  tgt_s_flat,  dim=1).view(Hs, Ws)
 
-                def resize_map(m, H_t, W_t):
-                    if (H_t, W_t) == (H_ref, W_ref):
-                        return m
-                    return F.interpolate(m.unsqueeze(0).unsqueeze(0), size=(H_ref, W_ref),
-                                         mode='bilinear', align_corners=False).squeeze(0).squeeze(0)
 
-                sim2_r = resize_map(sim2, H2, W2)
-                sim3_r = resize_map(sim3, H3, W3)
-                sims_r = resize_map(sims, Hs, Ws)
+
+                sim2_r = resize_map(sim2, H2, W2, H_ref, W_ref)
+                sim3_r = resize_map(sim3, H3, W3, H_ref, W_ref)
+                sims_r = resize_map(sims, Hs, Ws, H_ref, W_ref)
 
                 similarities = (weights[0] * sim2_r + weights[1] * sim3_r + weights[2] * sims_r).reshape(-1)
 
@@ -253,6 +245,12 @@ def evaluate_ensemble_with_params(
             # Compute PCK
             image_pcks = {}
             for threshold in thresholds:
+                #pck, correct_mask, distances = compute_pck_spair71k(
+                    #pred_matches,
+                    #trg_kps.tolist(),
+                    #trg_bbox,  # (W, H)
+                    #threshold
+                #)                
                 pck, correct_mask, distances = compute_pck_pfpascal(
                     pred_matches, trg_kps, tgt_original_size, threshold
                 )
