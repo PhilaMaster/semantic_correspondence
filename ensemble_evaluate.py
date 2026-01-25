@@ -113,7 +113,8 @@ def evaluate_ensemble_with_params(
     K,
     temperature,
     weights,
-    thresholds=None
+    thresholds=None,
+    use_windowed_softargmax=True,
 ):
     """
     Evaluate ensemble with weighted_avg fusion.
@@ -126,7 +127,7 @@ def evaluate_ensemble_with_params(
         temperature: softmax temperature
         weights: [w_dinov2, w_dinov3, w_sam] for weighted fusion (must sum to 1)
         thresholds: PCK thresholds
-    
+        use_windowed_softargmax: whether to use windowed softargmax or argmax
     Returns:
         per_image_metrics: list of dicts with PCK scores
     """
@@ -179,7 +180,8 @@ def evaluate_ensemble_with_params(
             trg_kps = sample['trg_kps'].numpy()
             kps_ids = sample['kps_ids']
             category = sample['category']
-            
+            trg_bbox = sample['trg_bbox']
+
             # Prepare target features for score-level fusion
             tgt_feat_dinov2_squeezed = tgt_feat_dinov2.squeeze(0)  # [H2, W2, D2]
             tgt_feat_dinov3_squeezed = tgt_feat_dinov3.squeeze(0)  # [H3, W3, D3]
@@ -231,10 +233,10 @@ def evaluate_ensemble_with_params(
                 similarities = (weights[0] * sim2_r + weights[1] * sim3_r + weights[2] * sims_r).reshape(-1)
 
                 # Find best match on ensemble similarity map
-                match_patch_x, match_patch_y = find_best_match_window_softargmax(
-                    similarities, W_ref, H_ref, K=K, temperature=temperature
-                )
-
+                if use_windowed_softargmax:
+                    match_patch_x, match_patch_y = find_best_match_window_softargmax(similarities, W_ref, H_ref, K, temperature)
+                else:
+                    match_patch_x, match_patch_y = find_best_match_argmax(similarities, W_ref)
                 # Convert to original image coords (ref grid = SAM)
                 match_x, match_y = patch_to_pixel_coord(
                     match_patch_x, match_patch_y, tgt_original_size,
