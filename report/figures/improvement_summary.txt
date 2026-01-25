@@ -1,0 +1,16 @@
+KEYPOINT IMPROVEMENT SUMMARY
+============================================================
+
+Top 5 Most Improved Keypoints:
+ keypoint_id  accuracy_pct_zero  accuracy_pct_fine  improvement
+           9              39.47              74.47        35.00
+          11              45.00              78.75        33.75
+           8              36.19              66.67        30.48
+          10              38.10              67.14        29.04
+          16              21.43              50.00        28.57
+
+Overall Statistics:
+Mean improvement: 15.20%
+Std improvement: 13.02%
+Min improvement: -4.16%
+Max improvement: 35.00%
