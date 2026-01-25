@@ -4,3 +4,4 @@ __pycache__/
 PF-dataset-PASCAL/
 PF-dataset/
 *.pth
+/scripts
