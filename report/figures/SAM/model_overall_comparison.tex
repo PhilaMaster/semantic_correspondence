@@ -1,0 +1,22 @@
+\begin{table}[h]
+\centering
+\caption{Overall performance comparison across models}
+\label{tab:model_overall_comparison}
+\begin{tabular}{llc}
+\toprule
+\textbf{Model} & \textbf{Metric} & \textbf{Mean PCK (\%)} \\
+\midrule
+\multirow{3}{*}{\textbf{Zero-shot}} & PCK@0.05 & 11.72\% \\
+ & PCK@0.10 & 20.44\% \\
+ & PCK@0.20 & 33.41\% \\
+\midrule
+\multirow{3}{*}{\textbf{Fine-tuned}} & PCK@0.05 & \textbf{25.74\%} \\
+ & PCK@0.10 & \textbf{36.75\%} \\
+ & PCK@0.20 & \textbf{49.58\%} \\
+\midrule
+\multirow{3}{*}{\textbf{Fine-tuned + Soft-argmax}} & PCK@0.05 & \textbf{25.74\%} \\
+ & PCK@0.10 & \textbf{36.75\%} \\
+ & PCK@0.20 & \textbf{49.58\%} \\
+\bottomrule
+\end{tabular}
+\end{table}

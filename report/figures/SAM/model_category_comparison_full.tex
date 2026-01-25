@@ -1,0 +1,24 @@
+\begin{table*}[t]
+\centering
+\caption{Performance comparison across models and object categories}
+\label{tab:model_category_comparison}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llccccccccccccccccccc}
+\toprule
+\textbf{Model} & \textbf{Metric} & \textbf{Aeroplane} & \textbf{Bicycle} & \textbf{Bird} & \textbf{Boat} & \textbf{Bottle} & \textbf{Bus} & \textbf{Car} & \textbf{Cat} & \textbf{Chair} & \textbf{Cow} & \textbf{Dog} & \textbf{Horse} & \textbf{Motorbike} & \textbf{Person} & \textbf{Pottedplant} & \textbf{Sheep} & \textbf{Train} & \textbf{Tvmonitor} & \textbf{Mean} \\
+\midrule
+\multirow{3}{*}{\textbf{Zero-shot}} & PCK@0.05 & 14.94\% & 8.87\% & 16.84\% & 7.66\% & 15.30\% & 9.88\% & 9.68\% & 24.75\% & 8.39\% & 12.06\% & 9.64\% & 8.45\% & 8.52\% & 13.26\% & 9.10\% & 5.41\% & 14.88\% & 12.75\% & 11.72\% \\
+ & PCK@0.10 & 22.87\% & 16.66\% & 29.17\% & 15.55\% & 25.16\% & 15.13\% & 15.05\% & 37.01\% & 13.79\% & 20.38\% & 17.97\% & 15.14\% & 16.77\% & 24.66\% & 18.71\% & 11.70\% & 26.00\% & 23.88\% & 20.44\% \\
+ & PCK@0.20 & 38.02\% & 27.92\% & 43.92\% & 26.75\% & 39.69\% & 24.20\% & 24.86\% & 52.27\% & 23.26\% & 33.10\% & 31.86\% & 26.50\% & 28.36\% & 40.35\% & 29.28\% & 22.62\% & 44.21\% & 40.71\% & 33.41\% \\
+\midrule
+\multirow{3}{*}{\textbf{Fine-tuned}} & PCK@0.05 & 37.09\% & 15.53\% & 39.42\% & 15.88\% & 21.13\% & 35.12\% & 25.84\% & 49.45\% & 12.12\% & 31.92\% & 25.25\% & 19.22\% & 12.11\% & 28.74\% & 14.15\% & 15.81\% & 46.36\% & 22.17\% & 25.74\% \\
+ & PCK@0.10 & 47.44\% & 25.72\% & 54.17\% & 24.49\% & 30.68\% & 44.76\% & 33.87\% & 60.45\% & 17.36\% & 47.07\% & 37.45\% & 30.23\% & 21.41\% & 40.54\% & 24.21\% & 25.63\% & 62.71\% & 36.65\% & 36.75\% \\
+ & PCK@0.20 & \textbf{62.36\%} & \textbf{38.48\%} & \textbf{67.98\%} & \textbf{38.01\%} & \textbf{43.03\%} & \textbf{52.95\%} & \textbf{44.46\%} & \textbf{73.00\%} & \textbf{25.28\%} & \textbf{61.93\%} & \textbf{51.07\%} & \textbf{46.45\%} & \textbf{34.67\%} & \textbf{54.16\%} & \textbf{35.25\%} & \textbf{38.24\%} & \textbf{77.64\%} & \textbf{50.93\%} & \textbf{49.58\%} \\
+\midrule
+\multirow{3}{*}{\textbf{Fine-tuned + Soft-argmax}} & PCK@0.05 & 37.09\% & 15.53\% & 39.42\% & 15.88\% & 21.13\% & 35.12\% & 25.84\% & 49.45\% & 12.12\% & 31.92\% & 25.25\% & 19.22\% & 12.11\% & 28.74\% & 14.15\% & 15.81\% & 46.36\% & 22.17\% & 25.74\% \\
+ & PCK@0.10 & 47.44\% & 25.72\% & 54.17\% & 24.49\% & 30.68\% & 44.76\% & 33.87\% & 60.45\% & 17.36\% & 47.07\% & 37.45\% & 30.23\% & 21.41\% & 40.54\% & 24.21\% & 25.63\% & 62.71\% & 36.65\% & 36.75\% \\
+ & PCK@0.20 & \textbf{62.36\%} & \textbf{38.48\%} & \textbf{67.98\%} & \textbf{38.01\%} & \textbf{43.03\%} & \textbf{52.95\%} & \textbf{44.46\%} & \textbf{73.00\%} & \textbf{25.28\%} & \textbf{61.93\%} & \textbf{51.07\%} & \textbf{46.45\%} & \textbf{34.67\%} & \textbf{54.16\%} & \textbf{35.25\%} & \textbf{38.24\%} & \textbf{77.64\%} & \textbf{50.93\%} & \textbf{49.58\%} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table*}

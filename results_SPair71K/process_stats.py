@@ -532,7 +532,7 @@ def load_and_analyze(results_dir):
     # ===================== SUMMARY REPORT =====================
     with open(f'{results_dir}/summary_report.txt', 'w') as f:
         f.write("=" * 60 + "\n")
-        f.write("DINOV2 SPAIR-71K EVALUATION SUMMARY\n")
+        f.write(f"{results_dir} REPORT\n")
         f.write("=" * 60 + "\n\n")
 
         f.write("OVERALL RESULTS\n")
@@ -590,8 +590,10 @@ if __name__ == "__main__":
     files_in_dir = [f for f in os.listdir(results_dir)
                     if os.path.isfile(os.path.join(results_dir, f))]
 
-    if len(files_in_dir) != 1 or files_in_dir[0] != "all_keypoint_metrics.csv":
-        print(f"Warning: Directory should contain only all_keypoint_metrics.csv")
+    if (len(files_in_dir) != 2
+            or ((files_in_dir[0] != "all_keypoint_metrics.csv" and files_in_dir[1]!='overall_stats.json')
+            and (files_in_dir[1] != "all_keypoint_metrics.csv" and files_in_dir[0]!='overall_stats.json'))):
+        print(f"Warning: Directory should contain only all_keypoint_metrics.csv and overall_stats.json")
         print(f"Found files: {files_in_dir}")
         response = input("Continue anyway? (y/n): ")
         if response.lower() != 'y':
