@@ -216,25 +216,12 @@ Results include:
 5. Compute PCK against ground truth
 
 ### Fine-Tuning Strategy
-- Freeze early layers, unfreeze last 3-4 transformer blocks
+- Freeze early layers, unfreeze last N transformer blocks
 - Cross-entropy loss on correspondence classification
 - Temperature-scaled softmax for soft targets
 - Learning rate: 1e-4 to 1e-5
 - Temperature: 10-15 for training
 
-## Citation
-
-If you use this code in your research, please cite:
-
-```bibtex
-@misc{semantic_correspondence,
-  title={Semantic Correspondence with Vision Foundation Models},
-  author={PhilaMaster},
-  year={2024},
-  publisher={GitHub},
-  url={https://github.com/PhilaMaster/semantic_correspondence}
-}
-```
 
 ## Acknowledgments
 
@@ -244,18 +231,3 @@ This project builds upon:
 - **SAM**: Meta's Segment Anything Model
 - **SPair-71K**: Semantic correspondence benchmark dataset
 - **PF-Pascal & PF-Willow**: Proposal Flow benchmark datasets
-
-## License
-
-Please refer to individual model licenses:
-- DINOv2: Apache 2.0
-- SAM: Apache 2.0
-- Datasets: Respective dataset licenses
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues or pull requests.
-
-## Contact
-
-For questions or collaboration, please open an issue on GitHub.
