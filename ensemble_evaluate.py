@@ -1,5 +1,6 @@
 import json
 from collections import defaultdict
+from matplotlib.style import use
 import numpy as np
 from sklearn import base
 import torch
@@ -130,11 +131,13 @@ def evaluate_ensemble_with_params(
         use_windowed_softargmax: whether to use windowed softargmax or argmax
     Returns:
         per_image_metrics: list of dicts with PCK scores
+        all_keypoint_metrics: list of dicts with per-keypoint metrics
     """
     if thresholds is None:
         thresholds = THRESHOLDS
     
     per_image_metrics = []
+    all_keypoint_metrics = []
     dinov2, dinov3, sam = models_dict['dinov2'], models_dict['dinov3'], models_dict['sam']
     
     with torch.no_grad():
@@ -224,8 +227,6 @@ def evaluate_ensemble_with_params(
                 sim3 = F.cosine_similarity(src_v3.unsqueeze(0), tgt_v3_flat, dim=1).view(H3, W3)
                 sims = F.cosine_similarity(src_vs.unsqueeze(0),  tgt_s_flat,  dim=1).view(Hs, Ws)
 
-
-
                 sim2_r = resize_map(sim2, H2, W2, H_ref, W_ref)
                 sim3_r = resize_map(sim3, H3, W3, H_ref, W_ref)
                 sims_r = resize_map(sims, Hs, Ws, H_ref, W_ref)
@@ -247,25 +248,87 @@ def evaluate_ensemble_with_params(
             # Compute PCK
             image_pcks = {}
             for threshold in thresholds:
-                #pck, correct_mask, distances = compute_pck_spair71k(
-                    #pred_matches,
-                    #trg_kps.tolist(),
-                    #trg_bbox,  # (W, H)
-                    #threshold
-                #)                
-                pck, correct_mask, distances = compute_pck_pfpascal(
-                    pred_matches, trg_kps, tgt_original_size, threshold
+                pck, correct_mask, distances = compute_pck_spair71k(
+                    pred_matches,
+                    trg_kps.tolist(),
+                    trg_bbox,
+                    threshold
                 )
+                # pck, correct_mask, distances = compute_pck_pfpascal(
+                #     pred_matches, trg_kps, tgt_original_size, threshold
+                # )
+                # store keypoint-wise metrics
+                for kps_id, pred, gt, dist, correct in zip(
+                        kps_ids, pred_matches, trg_kps.tolist(), distances, correct_mask
+                ):
+                    all_keypoint_metrics.append({
+                        'image_idx': idx,
+                        'category': category,
+                        'keypoint_id': kps_id,
+                        'pred': pred,
+                        'gt': gt,
+                        'distance': dist,
+                        'correct_at_threshold': correct,
+                        'threshold': threshold
+                    })
                 image_pcks[threshold] = pck
+            
+            # store per-image metrics
             per_image_metrics.append({
                 'category': category,
+                'source_path': str(sample['src_imname']),
+                'target_path': str(sample['trg_imname']),
+                'num_keypoints': src_kps.shape[0],
                 'pck_scores': image_pcks,
+                'pred_points': pred_matches,
+                'gt_points': trg_kps.tolist(),
+                'kps_ids': kps_ids,
             })
             
             if (idx + 1) % 100 == 0:
                 print(f"  Processed {idx + 1}/{len(dataset)} images")
     
-    return per_image_metrics
+    return per_image_metrics, all_keypoint_metrics
+
+
+def save_results(per_image_metrics, all_keypoint_metrics, results_dir, total_inference_time_sec, thresholds):
+    print(f"Total inference time: {total_inference_time_sec:.2f} seconds")
+
+    print("\n" + "=" * 60)
+    print("OVERALL RESULTS")
+    print("=" * 60)
+
+    overall_stats = {"inference_time_sec": total_inference_time_sec}
+
+    for threshold in thresholds:
+        all_pcks = np.array([img['pck_scores'][threshold] for img in per_image_metrics])
+
+        mean_pck = float(np.mean(all_pcks))
+        std_pck = float(np.std(all_pcks))
+        median_pck = float(np.median(all_pcks))
+        p25 = float(np.percentile(all_pcks, 25))
+        p75 = float(np.percentile(all_pcks, 75))
+
+        overall_stats[f"pck@{threshold:.2f}"] = {
+            "mean": mean_pck,
+            "std": std_pck,
+            "median": median_pck,
+            "p25": p25,
+            "p75": p75,
+        }
+
+        print(f"PCK@{threshold:.2f}: "
+              f"mean={mean_pck:.2f}%, std={std_pck:.2f}%, "
+              f"median={median_pck:.2f}%, "
+              f"p25={p25:.2f}%, p75={p75:.2f}%")
+
+    with open(f'{results_dir}/overall_stats.json', 'w') as f:
+        json.dump(overall_stats, f, indent=2)
+
+    df_all_kp = pd.DataFrame(all_keypoint_metrics)
+    csv_path = f'{results_dir}/all_keypoint_metrics.csv'
+    df_all_kp.to_csv(csv_path, index=False)
+    print(f"Saved all keypoint metrics to '{csv_path}'")
 
 
 # ==================== MAIN ====================
@@ -285,59 +348,36 @@ if __name__ == "__main__":
     # Weighted-average fusion weights: [DINOv2, DINOv3, SAM]
     weights = [0.25, 0.65, 0.10]
 
+    use_windowed_softargmax = True
+
     # Load test dataset
     print("\nLoading test dataset...")
-    # test_dataset = SPairDataset(PAIR_ANN_PATH, LAYOUT_PATH, IMAGE_PATH, DATASET_SIZE, 
-    #                             PCK_ALPHA, datatype='test')
-    base = 'pf_willow'
-    test_dataset = PFWillowDataset(base, split='test')
+    # base = 'pf_willow'
+    # test_dataset = PFWillowDataset(base, split='test')
+    test_dataset = SPairDataset(PAIR_ANN_PATH, LAYOUT_PATH, IMAGE_PATH, DATASET_SIZE, PCK_ALPHA, datatype='test')
 
     print(f"✓ Test set loaded: {len(test_dataset)} pairs")
 
     # Results dir
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     wtag = f"{weights[0]:.2f}-{weights[1]:.2f}-{weights[2]:.2f}"
-    results_dir = f'results_PF_Willow/ensemble/weighted_avg/K{K}_T{temperature}_w{wtag}_{timestamp}'
+    results_dir = f'results_SPair71k/ensemble/weighted_avg/K{K}_T{temperature}_w{wtag}_{timestamp}'
     os.makedirs(results_dir, exist_ok=True)
     print(f"Results will be saved to: {results_dir}")
 
     # Evaluate with weighted_avg fusion
     start = time.time()
-    per_image_metrics = evaluate_ensemble_with_params(
+    per_image_metrics, all_keypoint_metrics = evaluate_ensemble_with_params(
         models_dict=models_dict,
         dataset=test_dataset,
         device=device,
         K=K,
         temperature=temperature,
         weights=weights,
-        thresholds=THRESHOLDS
+        thresholds=THRESHOLDS,
+        use_windowed_softargmax=use_windowed_softargmax,
     )
     elapsed = time.time() - start
-    print(f"Total inference time: {elapsed:.2f} seconds")
 
-    # Aggregate overall stats
-    overall_stats = {"inference_time_sec": elapsed}
-    for threshold in THRESHOLDS:
-        all_pcks = np.array([img['pck_scores'][threshold] for img in per_image_metrics])
-        overall_stats[f"pck@{threshold:.2f}"] = {
-            "mean": float(np.mean(all_pcks)),
-            "std": float(np.std(all_pcks)),
-            "median": float(np.median(all_pcks)),
-            "p25": float(np.percentile(all_pcks, 25)),
-            "p75": float(np.percentile(all_pcks, 75)),
-        }
-        print(f"PCK@{threshold:.2f}: mean={overall_stats[f'pck@{threshold:.2f}']['mean']:.2f}% "
-              f"std={overall_stats[f'pck@{threshold:.2f}']['std']:.2f}% "
-              f"median={overall_stats[f'pck@{threshold:.2f}']['median']:.2f}% "
-              f"p25={overall_stats[f'pck@{threshold:.2f}']['p25']:.2f}% "
-              f"p75={overall_stats[f'pck@{threshold:.2f}']['p75']:.2f}%")
-
-    # Save outputs
-    with open(f'{results_dir}/overall_stats.json', 'w') as f:
-        json.dump(overall_stats, f, indent=2)
-    df_all = pd.DataFrame([
-        {"category": m["category"], **{f"pck@{t:.2f}": m["pck_scores"][t] for t in THRESHOLDS}}
-        for m in per_image_metrics
-    ])
-    df_all.to_csv(f'{results_dir}/per_image_metrics.csv', index=False)
-    print(f"Saved overall_stats.json and per_image_metrics.csv to {results_dir}")
+    # Save results using the same format as evaluate.py
+    save_results(per_image_metrics, all_keypoint_metrics, results_dir, elapsed, THRESHOLDS)
