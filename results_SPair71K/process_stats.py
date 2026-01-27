@@ -45,18 +45,23 @@ def load_and_analyze(results_dir):
         p25 = float(per_image_pck.quantile(0.25))
         p75 = float(per_image_pck.quantile(0.75))
 
+        # compute per-keypoint PCK (average per keypoint globally)
+        per_keypoint_pck = df_thresh['correct_at_threshold'].mean() * 100
+
         overall_stats[f"pck@{threshold:.2f}"] = {
             "mean": mean_pck,
             "std": std_pck,
             "median": median_pck,
             "p25": p25,
             "p75": p75,
+            "per_keypoint_mean": per_keypoint_pck,
         }
 
         print(f"PCK@{threshold:.2f}: "
               f"mean={mean_pck:.2f}%, std={std_pck:.2f}%, "
               f"median={median_pck:.2f}%, "
-              f"p25={p25:.2f}%, p75={p75:.2f}%")
+              f"p25={p25:.2f}%, p75={p75:.2f}%"
+              f"per-keypoint mean={per_keypoint_pck:.2f}%")
 
     with open(f'{results_dir}/overall_stats.json', 'w') as f:
         json.dump(overall_stats, f, indent=2)
