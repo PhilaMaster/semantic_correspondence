@@ -79,13 +79,13 @@ Evaluate pre-trained models without fine-tuning:
 
 ```bash
 # DINOv2 on PF-Pascal
-python training_free_evaluation.py
+python evaluation_dinov2.py
 
 # DINOv3 on SPair-71K
-python training_free_evaluation_faster.py
+python evaluation_dinov3.py
 
 # SAM on benchmark dataset
-python training_free_evaluation_SAM.py
+python evaluation_SAM.py
 ```
 
 ### Fine-Tuning
@@ -163,7 +163,7 @@ semantic_correspondence/
 ├── evaluate.py                      # Main evaluation script
 ├── ensemble_evaluate.py             # Multi-model ensemble evaluation
 ├── grid_search_hyperparams.py       # Hyperparameter optimization
-└── training_free_evaluation*.py     # Zero-shot evaluation scripts
+└── evaluation_*.py     # Zero-shot evaluation scripts
 ```
 
 ## Evaluation Metrics
